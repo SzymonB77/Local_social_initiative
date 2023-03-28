@@ -1,24 +1,5 @@
 # README
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
-
-Things you may want to cover:
-
-* Ruby version
-
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+## Entity Relationship Diagram (ERD)
+In the link below you will find the ER diagram of the database designed for this application. 
+https://dbdiagram.io/d/6406f914296d97641d85fefd
