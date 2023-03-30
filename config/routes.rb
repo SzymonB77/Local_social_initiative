@@ -4,5 +4,8 @@ Rails.application.routes.draw do
 
   resources :users
 
-  resources :events
+  resources :events do
+  
+    resources :attendees, only: %i[index create destroy]
+  end
 end
