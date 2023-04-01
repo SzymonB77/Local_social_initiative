@@ -1,5 +1,20 @@
+# == Schema Information
+#
+# Table name: users
+#
+#  id              :bigint           not null, primary key
+#  email           :string
+#  password_digest :string
+#  name            :string
+#  surname         :string
+#  user_name       :string
+#  role            :string
+#  bio             :text
+#  avatar          :string
+#  created_at      :datetime         not null
+#  updated_at      :datetime         not null
+#
 class User < ApplicationRecord
-
   has_secure_password
 
   # Add validations
