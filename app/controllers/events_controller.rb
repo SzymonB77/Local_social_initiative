@@ -18,10 +18,10 @@ class EventsController < ApplicationController
     @event = Event.new(event_params)
 
     if @event.save
-      
+
       # add the current user as an attendee to the new event
-      @event.attendees.create(user_id: @current_user.id, role: "host")
-      
+      @event.attendees.create(user_id: @current_user.id, role: 'host')
+
       render json: @event, serializer: EventSerializer
     else
       render json: @event.errors, status: :unprocessable_entity
@@ -31,25 +31,24 @@ class EventsController < ApplicationController
   # PUT /events/:id
   def update
     # check if current user is an admin attendee for this event
-    attendee = @event.attendees.find_by(user_id: @current_user.id,  role: ["host", "co-host"])
+    attendee = @event.attendees.find_by(user_id: @current_user.id, role: %w[host co-host])
 
     if attendee.present? && @event.update(event_params)
-        render json: @event, serializer: EventSerializer
+      render json: @event, serializer: EventSerializer
     else
-        render json: { errors: "Only host can update this event" }, status: :unprocessable_entity
+      render json: { errors: 'Only host can update this event' }, status: :unprocessable_entity
     end
-    
   end
 
   # DELETE /events/:id
   def destroy
     # check if current user is an admin attendee for this event
-    attendee = @event.attendees.find_by(user_id: @current_user.id, admin: "host")
+    attendee = @event.attendees.find_by(user_id: @current_user.id, admin: 'host')
 
     if attendee.present? && @event.destroy
       render json: @event, serializer: EventSerializer
     else
-      render json: { errors: "Only host can delete this event" }, status: :unprocessable_entity
+      render json: { errors: 'Only host can delete this event' }, status: :unprocessable_entity
     end
   end
 

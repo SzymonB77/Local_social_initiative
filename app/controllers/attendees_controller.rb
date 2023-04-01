@@ -1,7 +1,7 @@
 class AttendeesController < ApplicationController
-  before_action :authenticate_user_or_admin, only: [:create, :update, :destroy]
-  before_action :set_attendee, only: [:update, :destroy]
-  before_action :set_event, only: [:create, :destroy]
+  before_action :authenticate_user_or_admin, only: %i[create update destroy]
+  before_action :set_attendee, only: %i[update destroy]
+  before_action :set_event, only: %i[create destroy]
 
   # GET /events/:id/attendees
   def index
@@ -20,27 +20,29 @@ class AttendeesController < ApplicationController
       render json: @attendee.errors, status: :unprocessable_entity
     end
   end
-  
+
   # UPDATE /events/:id/attendees/:id
   def update
-    if @current_user.attendees.find_by(event_id: @attendee.event_id, role: ["host", "co-host"]) && @attendee.update(admin_params)
-      if attendee_params[:role] == "host"
-        render json: { error: "Cannot change host role" }, status: :unprocessable_entity
+    if @current_user.attendees.find_by(event_id: @attendee.event_id,
+                                       role: %w[host co-host]) && @attendee.update(admin_params)
+      if attendee_params[:role] == 'host'
+        render json: { error: 'Cannot change host role' }, status: :unprocessable_entity
       elsif @attendee.update(admin_params)
         render json: @attendee, serializer: AttendeeSerializer
       else
         render json: @attendee.errors, status: :unprocessable_entity
       end
     else
-      render json: { error: "Unauthorized or invalid parameters" }, status: :unprocessable_entity
+      render json: { error: 'Unauthorized or invalid parameters' }, status: :unprocessable_entity
     end
   end
+
   # DELETE /events/:id/attendees/:id
   def destroy
-    if @current_user.attendees.find_by(event_id: @attendee.event_id, role: ["host", "co-host"]) && @attendee.destroy
+    if @current_user.attendees.find_by(event_id: @attendee.event_id, role: %w[host co-host]) && @attendee.destroy
       render json: @attendee
     else
-      render json: { error: "Unauthorized" }, status: :unprocessable_entity
+      render json: { error: 'Unauthorized' }, status: :unprocessable_entity
     end
   end
 

@@ -1,9 +1,8 @@
-require "jwt"
+require 'jwt'
 
 module JwtToken
-
   extend ActiveSupport::Concern
-  SECRET_KEY = Rails.application.secrets.secret_key_base. to_s
+  SECRET_KEY = Rails.application.secrets.secret_key_base.to_s
 
   def jwt_encode(user_id, role, exp: 7.days.from_now)
     payload = { user_id: user_id, user_role: role }
@@ -15,5 +14,4 @@ module JwtToken
     decoded = JWT.decode(token, SECRET_KEY)[0]
     HashWithIndifferentAccess.new decoded
   end
-
 end
