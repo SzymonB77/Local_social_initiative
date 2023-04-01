@@ -8,4 +8,7 @@ class User < ApplicationRecord
   validates :password, presence: true, on: :create
   validates :role, presence: true
 
+  # associations
+  has_many :attendees, dependent: :destroy
+  has_many :events, through: :attendees
 end

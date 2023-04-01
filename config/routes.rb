@@ -4,4 +4,9 @@ Rails.application.routes.draw do
 
   resources :users
 
+  resources :events do
+  
+    resources :attendees
+
+  end
 end
