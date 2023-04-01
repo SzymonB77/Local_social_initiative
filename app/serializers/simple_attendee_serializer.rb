@@ -1,9 +1,15 @@
 class SimpleAttendeeSerializer < ActiveModel::Serializer
-  belongs_to :user, key: :attendees, serializer: SimpleUserSerializer
+  attributes :id, :role, :user_name, :user_surname, :user_avatar
 
-  attributes :member
+  def user_name
+    object.user.name
+  end
 
-  def member
-    object.admin? ? 'Host' : 'Member'
+  def user_surname
+    object.user.surname
+  end
+
+  def user_avatar
+    object.user.avatar
   end
 end

@@ -20,7 +20,7 @@ class EventsController < ApplicationController
     if @event.save
       
       # add the current user as an attendee to the new event
-      @event.attendees.create(user_id: @current_user.id, admin: true)
+      @event.attendees.create(user_id: @current_user.id, role: "host")
       
       render json: @event, serializer: EventSerializer
     else
@@ -31,12 +31,12 @@ class EventsController < ApplicationController
   # PUT /events/:id
   def update
     # check if current user is an admin attendee for this event
-    attendee = @event.attendees.find_by(user_id: @current_user.id, admin: true)
+    attendee = @event.attendees.find_by(user_id: @current_user.id,  role: ["host", "co-host"])
 
     if attendee.present? && @event.update(event_params)
         render json: @event, serializer: EventSerializer
     else
-        render json: { errors: "Only admin attendees can update this event" }, status: :unprocessable_entity
+        render json: { errors: "Only host can update this event" }, status: :unprocessable_entity
     end
     
   end
@@ -44,12 +44,12 @@ class EventsController < ApplicationController
   # DELETE /events/:id
   def destroy
     # check if current user is an admin attendee for this event
-    attendee = @event.attendees.find_by(user_id: @current_user.id, admin: true)
+    attendee = @event.attendees.find_by(user_id: @current_user.id, admin: "host")
 
     if attendee.present? && @event.destroy
       render json: @event, serializer: EventSerializer
     else
-      render json: { errors: "Only admin attendees can delete this event" }, status: :unprocessable_entity
+      render json: { errors: "Only host can delete this event" }, status: :unprocessable_entity
     end
   end
 

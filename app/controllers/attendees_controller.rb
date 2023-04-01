@@ -23,16 +23,21 @@ class AttendeesController < ApplicationController
   
   # UPDATE /events/:id/attendees/:id
   def update
-    if @current_user.attendees.find_by(event_id: @attendee.event_id, admin: true) && @attendee.update(admin_params)
-      render json: @attendee, serializer: AttendeeSerializer
+    if @current_user.attendees.find_by(event_id: @attendee.event_id, role: ["host", "co-host"]) && @attendee.update(admin_params)
+      if attendee_params[:role] == "host"
+        render json: { error: "Cannot change host role" }, status: :unprocessable_entity
+      elsif @attendee.update(admin_params)
+        render json: @attendee, serializer: AttendeeSerializer
+      else
+        render json: @attendee.errors, status: :unprocessable_entity
+      end
     else
       render json: { error: "Unauthorized or invalid parameters" }, status: :unprocessable_entity
     end
   end
-
   # DELETE /events/:id/attendees/:id
   def destroy
-    if @current_user.attendees.find_by(event_id: @attendee.event_id, admin: true) && @attendee.destroy
+    if @current_user.attendees.find_by(event_id: @attendee.event_id, role: ["host", "co-host"]) && @attendee.destroy
       render json: @attendee
     else
       render json: { error: "Unauthorized" }, status: :unprocessable_entity
@@ -50,10 +55,10 @@ class AttendeesController < ApplicationController
   end
 
   def attendee_params
-    params.require(:attendee).permit(:id, :admin, :user_id, :event_id)
+    params.require(:attendee).permit(:id, :user_id, :event_id)
   end
 
   def admin_params
-    params.require(:attendee).permit(:admin)
+    params.require(:attendee).permit(:role)
   end
 end

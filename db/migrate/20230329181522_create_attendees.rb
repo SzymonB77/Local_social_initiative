@@ -3,7 +3,7 @@ class CreateAttendees < ActiveRecord::Migration[6.1]
     create_table :attendees do |t|
       t.references :user, null: false, foreign_key: true
       t.references :event, null: false, foreign_key: true
-      t.boolean :admin, default: false
+      t.string :role, default: "member"
 
       t.timestamps
     end
