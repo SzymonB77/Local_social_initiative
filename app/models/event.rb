@@ -24,6 +24,7 @@ class Event < ApplicationRecord
   # associations
   has_many :attendees, dependent: :destroy
   has_many :users, through: :attendees
+  belongs_to :group, optional: true
 
   def start_date_cannot_be_in_the_past
     errors.add(:start_date, "can't be in the past") if start_date < Time.zone.now
