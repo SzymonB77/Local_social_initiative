@@ -30,7 +30,7 @@ ActiveRecord::Schema.define(version: 2023_03_29_181522) do
     t.string "name"
     t.datetime "start_date"
     t.datetime "end_date"
-    t.string "status"
+    t.string "status", default: "planned"
     t.string "location"
     t.text "description"
     t.datetime "created_at", precision: 6, null: false

@@ -1,5 +1,5 @@
 class EventsController < ApplicationController
-  before_action :authenticate_user_or_admin, only: %i[create]
+  before_action :authenticate_user_or_admin, only: %i[create update destroy]
   before_action :set_event, only: %i[show update destroy]
 
   # GET /events
@@ -18,6 +18,10 @@ class EventsController < ApplicationController
     @event = Event.new(event_params)
 
     if @event.save
+      
+      # add the current user as an attendee to the new event
+      @event.attendees.create(user_id: @current_user.id, admin: true)
+      
       render json: @event, serializer: EventSerializer
     else
       render json: @event.errors, status: :unprocessable_entity
@@ -26,16 +30,27 @@ class EventsController < ApplicationController
 
   # PUT /events/:id
   def update
-    if @event.update(event_params)
-      render json: @event, serializer: EventSerializer
+    # check if current user is an admin attendee for this event
+    attendee = @event.attendees.find_by(user_id: @current_user.id, admin: true)
+
+    if attendee.present? && @event.update(event_params)
+        render json: @event, serializer: EventSerializer
     else
-      render json: { errors: @event.errors.messages }, status: :unprocessable_entity
+        render json: { errors: "Only admin attendees can update this event" }, status: :unprocessable_entity
     end
+    
   end
 
   # DELETE /events/:id
   def destroy
-    render json: @event if @event.destroy
+    # check if current user is an admin attendee for this event
+    attendee = @event.attendees.find_by(user_id: @current_user.id, admin: true)
+
+    if attendee.present? && @event.destroy
+      render json: @event, serializer: EventSerializer
+    else
+      render json: { errors: "Only admin attendees can delete this event" }, status: :unprocessable_entity
+    end
   end
 
   private

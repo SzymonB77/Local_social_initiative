@@ -1,16 +1,16 @@
 class AttendeesController < ApplicationController
-  before_action :authenticate_admin, only: [:index]
-  before_action :authenticate_user_or_admin, only: [:create, :destroy]
-  before_action :set_attendee, only: [:destroy]
+  before_action :authenticate_user_or_admin, only: [:create, :update, :destroy]
+  before_action :set_attendee, only: [:update, :destroy]
   before_action :set_event, only: [:create, :destroy]
 
-  # GET /events/attendees
+  # GET /events/:id/attendees
   def index
-    @attendees = Attendee.all
-    render json: @attendees, each_serializer: AttendeeSerializer
+    @event = Event.find(params[:event_id])
+    @attendees = @event.attendees
+    render json: @attendees, each_serializer: SimpleAttendeeSerializer
   end
 
-  # POST /events/attendees
+  # POST /events/:id/attendees
   def create
     @attendee = @event.attendees.build(attendee_params)
     @attendee.user = @current_user
@@ -20,10 +20,23 @@ class AttendeesController < ApplicationController
       render json: @attendee.errors, status: :unprocessable_entity
     end
   end
+  
+  # UPDATE /events/:id/attendees/:id
+  def update
+    if @current_user.attendees.find_by(event_id: @attendee.event_id, admin: true) && @attendee.update(admin_params)
+      render json: @attendee, serializer: AttendeeSerializer
+    else
+      render json: { error: "Unauthorized or invalid parameters" }, status: :unprocessable_entity
+    end
+  end
 
-  # DELETE /events/attendees/:id
+  # DELETE /events/:id/attendees/:id
   def destroy
-    render json: @attendee if @attendee.destroy
+    if @current_user.attendees.find_by(event_id: @attendee.event_id, admin: true) && @attendee.destroy
+      render json: @attendee
+    else
+      render json: { error: "Unauthorized" }, status: :unprocessable_entity
+    end
   end
 
   private
@@ -40,4 +53,7 @@ class AttendeesController < ApplicationController
     params.require(:attendee).permit(:id, :admin, :user_id, :event_id)
   end
 
+  def admin_params
+    params.require(:attendee).permit(:admin)
+  end
 end

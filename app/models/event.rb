@@ -7,4 +7,5 @@ class Event < ApplicationRecord
 
     # associations
     has_many :attendees, dependent: :destroy
+    has_many :users, through: :attendees
 end

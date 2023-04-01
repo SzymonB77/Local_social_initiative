@@ -10,4 +10,5 @@ class User < ApplicationRecord
 
   # associations
   has_many :attendees, dependent: :destroy
+  has_many :events, through: :attendees
 end
