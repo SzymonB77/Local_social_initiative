@@ -10,14 +10,14 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20_230_329_181_522) do
+ActiveRecord::Schema.define(version: 20_230_402_213_820) do
   # These are extensions that must be enabled in order to support this database
   enable_extension 'plpgsql'
 
   create_table 'attendees', force: :cascade do |t|
     t.bigint 'user_id', null: false
     t.bigint 'event_id', null: false
-    t.string 'role', default: 'member'
+    t.string 'role', default: 'attendee'
     t.datetime 'created_at', precision: 6, null: false
     t.datetime 'updated_at', precision: 6, null: false
     t.index ['event_id'], name: 'index_attendees_on_event_id'
@@ -34,6 +34,27 @@ ActiveRecord::Schema.define(version: 20_230_329_181_522) do
     t.text 'description'
     t.datetime 'created_at', precision: 6, null: false
     t.datetime 'updated_at', precision: 6, null: false
+    t.bigint 'group_id'
+    t.index ['group_id'], name: 'index_events_on_group_id'
+  end
+
+  create_table 'groups', force: :cascade do |t|
+    t.string 'name', null: false
+    t.text 'description'
+    t.string 'avatar'
+    t.datetime 'created_at', precision: 6, null: false
+    t.datetime 'updated_at', precision: 6, null: false
+  end
+
+  create_table 'members', force: :cascade do |t|
+    t.bigint 'user_id', null: false
+    t.bigint 'group_id', null: false
+    t.string 'role', default: 'member'
+    t.datetime 'created_at', precision: 6, null: false
+    t.datetime 'updated_at', precision: 6, null: false
+    t.index ['group_id'], name: 'index_members_on_group_id'
+    t.index %w[user_id group_id], name: 'index_members_on_user_id_and_group_id', unique: true
+    t.index ['user_id'], name: 'index_members_on_user_id'
   end
 
   create_table 'users', force: :cascade do |t|
@@ -51,4 +72,7 @@ ActiveRecord::Schema.define(version: 20_230_329_181_522) do
 
   add_foreign_key 'attendees', 'events'
   add_foreign_key 'attendees', 'users'
+  add_foreign_key 'events', 'groups'
+  add_foreign_key 'members', 'groups'
+  add_foreign_key 'members', 'users'
 end

@@ -31,7 +31,8 @@ class EventsController < ApplicationController
   # PUT /events/:id
   def update
     # check if current user is an admin attendee for this event
-    attendee = @event.attendees.find_by(user_id: @current_user.id, role: %w[host co-host])
+    attendee = @event.attendees.find_by(user_id: @current_user.id,
+                                        role: %w[host co-host]) || @current_user.role == 'admin'
 
     if attendee.present? && @event.update(event_params)
       render json: @event, serializer: EventSerializer
@@ -43,7 +44,7 @@ class EventsController < ApplicationController
   # DELETE /events/:id
   def destroy
     # check if current user is an admin attendee for this event
-    attendee = @event.attendees.find_by(user_id: @current_user.id, admin: 'host')
+    attendee = @event.attendees.find_by(user_id: @current_user.id, admin: 'host') || @current_user.role == 'admin'
 
     if attendee.present? && @event.destroy
       render json: @event, serializer: EventSerializer
@@ -58,11 +59,7 @@ class EventsController < ApplicationController
     @event = Event.find(params[:id])
   end
 
-  def set_user
-    @user = User.find(params[:id])
-  end
-
   def event_params
-    params.require(:event).permit(:id, :name, :start_date, :end_date, :status, :location, :description)
+    params.require(:event).permit(:id, :name, :start_date, :end_date, :status, :location, :description, :group_id)
   end
 end

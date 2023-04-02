@@ -2,6 +2,7 @@ class AttendeesController < ApplicationController
   before_action :authenticate_user_or_admin, only: %i[create update destroy]
   before_action :set_attendee, only: %i[update destroy]
   before_action :set_event, only: %i[create destroy]
+  # before_action :set_user, only: %i[destroy]
 
   # GET /events/:id/attendees
   def index
@@ -24,8 +25,9 @@ class AttendeesController < ApplicationController
   # UPDATE /events/:id/attendees/:id
   def update
     if @current_user.attendees.find_by(event_id: @attendee.event_id,
-                                       role: %w[host co-host]) && @attendee.update(admin_params)
-      if attendee_params[:role] == 'host'
+                                       role: %w[host
+                                                co-host]) || @current_user.role == 'admin' && @attendee.update(admin_params)
+      if admin_params[:role] == 'host'
         render json: { error: 'Cannot change host role' }, status: :unprocessable_entity
       elsif @attendee.update(admin_params)
         render json: @attendee, serializer: AttendeeSerializer
@@ -39,7 +41,9 @@ class AttendeesController < ApplicationController
 
   # DELETE /events/:id/attendees/:id
   def destroy
-    if @current_user.attendees.find_by(event_id: @attendee.event_id, role: %w[host co-host]) && @attendee.destroy
+    if @current_user.attendees.find_by(event_id: @attendee.event_id,
+                                       role: %w[host
+                                                co-host]) || @current_user.role == 'admin' || @current_user.id == @attendee.user_id && @attendee.destroy
       render json: @attendee
     else
       render json: { error: 'Unauthorized' }, status: :unprocessable_entity
