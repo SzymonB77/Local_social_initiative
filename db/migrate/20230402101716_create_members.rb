@@ -9,4 +9,9 @@ class CreateMembers < ActiveRecord::Migration[6.1]
     end
     add_index :members, %i[user_id group_id], unique: true
   end
+
+  def down
+    remove_index :members, %i[user_id group_id]
+    drop_table :members
+  end
 end

@@ -6,7 +6,7 @@ Rails.application.routes.draw do
   resources :events do
     resources :attendees
   end
-  
+
   resources :groups do
     resources :members
   end

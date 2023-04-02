@@ -22,7 +22,6 @@ class GroupsController < ApplicationController
       # add the current user as an organizer to the new event
       @group.members.create(user_id: @current_user.id, role: 'organizer')
 
-      
       render json: @group, serializer: GroupSerializer
     else
       render json: @group.errors, status: :unprocessable_entity
@@ -32,19 +31,21 @@ class GroupsController < ApplicationController
   # PUT /groups/:id
   def update
     # check if current user is an admin attendee for this event
-    member = @group.members.find_by(user_id: @current_user.id, role: %w[organizer co-organizer])
+    member = @group.members.find_by(user_id: @current_user.id,
+                                    role: %w[organizer
+                                             co-organizer]) || @current_user.role == 'admin'
 
     if member.present? && @group.update(group_params)
       render json: @group, serializer: GroupSerializer
     else
-      render json: {errors: 'Only organizer and co-organizer can update this event' }, status: :unprocessable_entity
+      render json: { errors: 'Only organizer and co-organizer can update this event' }, status: :unprocessable_entity
     end
   end
 
   # DELETE /groups/:id
   def destroy
     # check if current user is an organizer for this event
-    member = @group.members.find_by(user_id: @current_user.id, role: %w[organizer])
+    member = @group.members.find_by(user_id: @current_user.id, role: %w[organizer]) || @current_user.role == 'admin'
 
     if member.present? && @group.destroy
       render json: @group, serializer: GroupSerializer
@@ -52,6 +53,7 @@ class GroupsController < ApplicationController
       render json: { errors: 'Only organizer can delete this event' }, status: :unprocessable_entity
     end
   end
+
   private
 
   def set_group
