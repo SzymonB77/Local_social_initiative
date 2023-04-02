@@ -25,7 +25,7 @@ class AttendeesController < ApplicationController
   def update
     if @current_user.attendees.find_by(event_id: @attendee.event_id,
                                        role: %w[host co-host]) && @attendee.update(admin_params)
-      if attendee_params[:role] == 'host'
+      if admin_params[:role] == 'host'
         render json: { error: 'Cannot change host role' }, status: :unprocessable_entity
       elsif @attendee.update(admin_params)
         render json: @attendee, serializer: AttendeeSerializer

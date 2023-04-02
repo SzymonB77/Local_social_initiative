@@ -11,4 +11,6 @@
 #
 class GroupSerializer < ActiveModel::Serializer
   attributes :id, :name, :description, :avatar
+
+  has_many :members, serializer: SimpleMemberSerializer, limit: 4
 end

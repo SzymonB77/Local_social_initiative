@@ -15,4 +15,6 @@ class Group < ApplicationRecord
 
   # associations
   has_many :events
+  has_many :members, dependent: :destroy
+  has_many :users, through: :members
 end

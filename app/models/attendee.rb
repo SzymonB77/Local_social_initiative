@@ -10,9 +10,9 @@
 #  updated_at :datetime         not null
 #
 class Attendee < ApplicationRecord
-  ATTENDE_ROLES = %w[host co-host member].freeze
+  ATTENDEE_ROLES = %w[host co-host member].freeze
   # Add validations
-  validates :role, inclusion: { in: ATTENDE_ROLES }
+  validates :role, inclusion: { in: ATTENDEE_ROLES }
 
   # associations
   belongs_to :user
