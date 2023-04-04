@@ -11,6 +11,7 @@
 #  description :text
 #  created_at  :datetime         not null
 #  updated_at  :datetime         not null
+#  group_id    :bigint
 #
 class Event < ApplicationRecord
   VALID_STATUSES = ['planned', 'in progress', 'finished'].freeze
