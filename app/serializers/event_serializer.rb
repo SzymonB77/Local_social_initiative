@@ -11,6 +11,7 @@
 #  description :text
 #  created_at  :datetime         not null
 #  updated_at  :datetime         not null
+#  group_id    :bigint
 #
 class EventSerializer < ActiveModel::Serializer
   attributes :id, :name, :start_date, :end_date, :status, :location, :description

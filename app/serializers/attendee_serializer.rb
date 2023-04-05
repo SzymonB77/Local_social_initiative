@@ -5,7 +5,7 @@
 #  id         :bigint           not null, primary key
 #  user_id    :bigint           not null
 #  event_id   :bigint           not null
-#  role       :string           default("member")
+#  role       :string           default("attendee")
 #  created_at :datetime         not null
 #  updated_at :datetime         not null
 #
