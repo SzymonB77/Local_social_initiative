@@ -28,6 +28,7 @@ class Event < ApplicationRecord
   belongs_to :group, optional: true
   has_many :event_tags, dependent: :destroy
   has_many :tags, through: :event_tags
+  has_many :photos, dependent: :destroy
 
   def start_date_cannot_be_in_the_past
     errors.add(:start_date, "can't be in the past") if start_date < Time.zone.now
