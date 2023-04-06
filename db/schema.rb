@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20_230_405_115_546) do
+ActiveRecord::Schema.define(version: 20_230_405_183_805) do
   # These are extensions that must be enabled in order to support this database
   enable_extension 'plpgsql'
 
@@ -23,6 +23,16 @@ ActiveRecord::Schema.define(version: 20_230_405_115_546) do
     t.index ['event_id'], name: 'index_attendees_on_event_id'
     t.index %w[user_id event_id], name: 'index_attendees_on_user_id_and_event_id', unique: true
     t.index ['user_id'], name: 'index_attendees_on_user_id'
+  end
+
+  create_table 'event_tags', force: :cascade do |t|
+    t.bigint 'event_id', null: false
+    t.bigint 'tag_id', null: false
+    t.datetime 'created_at', precision: 6, null: false
+    t.datetime 'updated_at', precision: 6, null: false
+    t.index %w[event_id tag_id], name: 'index_event_tags_on_event_id_and_tag_id', unique: true
+    t.index ['event_id'], name: 'index_event_tags_on_event_id'
+    t.index ['tag_id'], name: 'index_event_tags_on_tag_id'
   end
 
   create_table 'events', force: :cascade do |t|
@@ -78,6 +88,8 @@ ActiveRecord::Schema.define(version: 20_230_405_115_546) do
 
   add_foreign_key 'attendees', 'events'
   add_foreign_key 'attendees', 'users'
+  add_foreign_key 'event_tags', 'events'
+  add_foreign_key 'event_tags', 'tags'
   add_foreign_key 'events', 'groups'
   add_foreign_key 'members', 'groups'
   add_foreign_key 'members', 'users'
