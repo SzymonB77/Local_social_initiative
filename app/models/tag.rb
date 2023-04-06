@@ -10,4 +10,8 @@
 class Tag < ApplicationRecord
   # Add validations
   validates :name, presence: true, uniqueness: true
+
+  # associations
+  has_many :event_tags, dependent: :destroy
+  has_many :events, through: :event_tags
 end
