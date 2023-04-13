@@ -12,9 +12,17 @@
 #  created_at  :datetime         not null
 #  updated_at  :datetime         not null
 #  group_id    :bigint
+#  main_photo  :string
 #
 class EventSerializer < ActiveModel::Serializer
-  attributes :id, :name, :start_date, :end_date, :status, :location, :description
+  attributes :id, :name, :start_date, :end_date, :status, :location, :description, :hosted_by
 
   has_many :attendees, serializer: SimpleAttendeeSerializer, limit: 4
+  has_many :photos, serializer: PhotoSerializer, limit: 4
+  belongs_to :group
+
+  def hosted_by
+    host = object.attendees.find_by(role: 'host')
+    SimpleAttendeeSerializer.new(host).attributes
+  end
 end

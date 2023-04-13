@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20_230_406_141_724) do
+ActiveRecord::Schema.define(version: 20_230_408_221_135) do
   # These are extensions that must be enabled in order to support this database
   enable_extension 'plpgsql'
 
@@ -45,6 +45,7 @@ ActiveRecord::Schema.define(version: 20_230_406_141_724) do
     t.datetime 'created_at', precision: 6, null: false
     t.datetime 'updated_at', precision: 6, null: false
     t.bigint 'group_id'
+    t.string 'main_photo'
     t.index ['group_id'], name: 'index_events_on_group_id'
   end
 
@@ -54,6 +55,7 @@ ActiveRecord::Schema.define(version: 20_230_406_141_724) do
     t.string 'avatar'
     t.datetime 'created_at', precision: 6, null: false
     t.datetime 'updated_at', precision: 6, null: false
+    t.integer 'members_count', default: 0
   end
 
   create_table 'members', force: :cascade do |t|
@@ -88,7 +90,7 @@ ActiveRecord::Schema.define(version: 20_230_406_141_724) do
     t.string 'password_digest'
     t.string 'name'
     t.string 'surname'
-    t.string 'user_name'
+    t.string 'nickname'
     t.string 'role'
     t.text 'bio'
     t.string 'avatar'

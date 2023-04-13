@@ -7,7 +7,6 @@ class TagsController < ApplicationController
     @tags = Tag.all
 
     render json: @tags
-    # , each_serializer: TagSerializer
   end
 
   # GET /tags/1

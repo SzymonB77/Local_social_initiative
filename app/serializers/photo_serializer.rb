@@ -13,6 +13,6 @@ class PhotoSerializer < ActiveModel::Serializer
   attributes :id, :url, :author
 
   def author
-    object.user.user_name
+    object.user.nickname
   end
 end

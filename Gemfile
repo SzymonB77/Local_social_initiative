@@ -33,6 +33,14 @@ gem 'bcrypt', '~> 3.1.7'
 # Annotates Rails/ActiveRecord Models, routes, fixtures, and others based on the database schema.
 gem 'annotate', '~> 3.2'
 
+# Provides a clear syntax for writing and deploying cron jobs in a Rails application
+gem 'whenever', '~> 1.0.0', require: false
+
+gem 'faker'
+
+# Great Ruby dubugging companion: pretty print Ruby objects to visualize their structure.
+gem 'awesome_print', '~> 1.8'
+
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug', platforms: %i[mri mingw x64_mingw]

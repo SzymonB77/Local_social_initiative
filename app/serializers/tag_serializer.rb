@@ -9,4 +9,6 @@
 #
 class TagSerializer < ActiveModel::Serializer
   attributes :id, :name
+
+  has_many :events, serializer: SimpleEventSerializer
 end
