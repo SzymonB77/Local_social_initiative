@@ -13,6 +13,7 @@ class Member < ApplicationRecord
   MEMBER_ROLES = %w[organizer co-organizer member].freeze
   # Add validations
   validates :role, inclusion: { in: MEMBER_ROLES }
+  validates :user, uniqueness: { scope: %i[user_id group_id] }
 
   # associations
   belongs_to :user
