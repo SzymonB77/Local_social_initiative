@@ -13,7 +13,7 @@ class Attendee < ApplicationRecord
   ATTENDEE_ROLES = %w[host co-host attendee].freeze
   # Add validations
   validates :role, inclusion: { in: ATTENDEE_ROLES }
-
+  validates :user, uniqueness: { scope: %i[user_id event_id] }
   # associations
   belongs_to :user
   belongs_to :event
