@@ -63,7 +63,7 @@ class GroupEventsController < ApplicationController
   private
 
   def set_event
-    @event = Event.find(params[:id])
+    @event = Event.includes(attendees: :user, photos: :user).find(params[:id])
   end
 
   def set_group
