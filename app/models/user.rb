@@ -7,7 +7,7 @@
 #  password_digest :string
 #  name            :string
 #  surname         :string
-#  user_name       :string
+#  nickname        :string
 #  role            :string
 #  bio             :text
 #  avatar          :string
@@ -18,7 +18,7 @@ class User < ApplicationRecord
   has_secure_password
 
   # Add validations
-  validates :user_name, presence: true
+  validates :nickname, presence: true
   validates :email, presence: true, uniqueness: true
   validates :password, presence: true, on: :create
   validates :role, presence: true
@@ -28,4 +28,5 @@ class User < ApplicationRecord
   has_many :events, through: :attendees
   has_many :members, dependent: :destroy
   has_many :gropus, through: :members
+  has_many :photos
 end

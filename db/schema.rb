@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20_230_402_213_820) do
+ActiveRecord::Schema.define(version: 20_230_408_221_135) do
   # These are extensions that must be enabled in order to support this database
   enable_extension 'plpgsql'
 
@@ -25,6 +25,16 @@ ActiveRecord::Schema.define(version: 20_230_402_213_820) do
     t.index ['user_id'], name: 'index_attendees_on_user_id'
   end
 
+  create_table 'event_tags', force: :cascade do |t|
+    t.bigint 'event_id', null: false
+    t.bigint 'tag_id', null: false
+    t.datetime 'created_at', precision: 6, null: false
+    t.datetime 'updated_at', precision: 6, null: false
+    t.index %w[event_id tag_id], name: 'index_event_tags_on_event_id_and_tag_id', unique: true
+    t.index ['event_id'], name: 'index_event_tags_on_event_id'
+    t.index ['tag_id'], name: 'index_event_tags_on_tag_id'
+  end
+
   create_table 'events', force: :cascade do |t|
     t.string 'name'
     t.datetime 'start_date'
@@ -35,6 +45,7 @@ ActiveRecord::Schema.define(version: 20_230_402_213_820) do
     t.datetime 'created_at', precision: 6, null: false
     t.datetime 'updated_at', precision: 6, null: false
     t.bigint 'group_id'
+    t.string 'main_photo'
     t.index ['group_id'], name: 'index_events_on_group_id'
   end
 
@@ -44,6 +55,7 @@ ActiveRecord::Schema.define(version: 20_230_402_213_820) do
     t.string 'avatar'
     t.datetime 'created_at', precision: 6, null: false
     t.datetime 'updated_at', precision: 6, null: false
+    t.integer 'members_count', default: 0
   end
 
   create_table 'members', force: :cascade do |t|
@@ -57,12 +69,28 @@ ActiveRecord::Schema.define(version: 20_230_402_213_820) do
     t.index ['user_id'], name: 'index_members_on_user_id'
   end
 
+  create_table 'photos', force: :cascade do |t|
+    t.bigint 'event_id'
+    t.bigint 'user_id'
+    t.string 'url', null: false
+    t.datetime 'created_at', precision: 6, null: false
+    t.datetime 'updated_at', precision: 6, null: false
+    t.index ['event_id'], name: 'index_photos_on_event_id'
+    t.index ['user_id'], name: 'index_photos_on_user_id'
+  end
+
+  create_table 'tags', force: :cascade do |t|
+    t.string 'name', null: false
+    t.datetime 'created_at', precision: 6, null: false
+    t.datetime 'updated_at', precision: 6, null: false
+  end
+
   create_table 'users', force: :cascade do |t|
     t.string 'email'
     t.string 'password_digest'
     t.string 'name'
     t.string 'surname'
-    t.string 'user_name'
+    t.string 'nickname'
     t.string 'role'
     t.text 'bio'
     t.string 'avatar'
@@ -72,7 +100,11 @@ ActiveRecord::Schema.define(version: 20_230_402_213_820) do
 
   add_foreign_key 'attendees', 'events'
   add_foreign_key 'attendees', 'users'
+  add_foreign_key 'event_tags', 'events'
+  add_foreign_key 'event_tags', 'tags'
   add_foreign_key 'events', 'groups'
   add_foreign_key 'members', 'groups'
   add_foreign_key 'members', 'users'
+  add_foreign_key 'photos', 'events'
+  add_foreign_key 'photos', 'users'
 end

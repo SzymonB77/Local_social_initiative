@@ -7,7 +7,7 @@
 #  password_digest :string
 #  name            :string
 #  surname         :string
-#  user_name       :string
+#  nickname        :string
 #  role            :string
 #  bio             :text
 #  avatar          :string
@@ -15,5 +15,5 @@
 #  updated_at      :datetime         not null
 #
 class UserSerializer < ActiveModel::Serializer
-  attributes :id, :user_name, :email, :name, :surname, :role, :bio, :avatar
+  attributes :id, :nickname, :email, :name, :surname, :role, :bio, :avatar
 end
