@@ -6,7 +6,7 @@ class PhotosController < ApplicationController
   # GET /events/:id/photos
   def index
     @event = Event.find(params[:event_id])
-    @photos = @event.photos
+    @photos = @event.photos.includes(:user)
     render json: @photos, each_serializer: PhotoSerializer
   end
 

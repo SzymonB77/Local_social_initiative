@@ -6,7 +6,7 @@ class EventTagsController < ApplicationController
   # GET /event/:id/event_tags
   def index
     @event = Event.find(params[:event_id])
-    @event_tags = @event.tags
+    @event_tags = @event.tags.includes(:event_tags, :events)
 
     render json: @event_tags, each_serializer: TagSerializer
   end

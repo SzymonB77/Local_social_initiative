@@ -1,6 +1,6 @@
 class EventsController < ApplicationController
   before_action :authenticate_user_or_admin, only: %i[create update destroy]
-  before_action :set_event, only: %i[show update destroy]
+  before_action :set_event, only: %i[update destroy]
 
   # GET /events
   def index
@@ -10,6 +10,8 @@ class EventsController < ApplicationController
 
   # GET /events/:id
   def show
+    @event = Event.includes(attendees: :user, photos: :user).find(params[:id])
+
     render json: @event, serializer: EventSerializer
   end
 

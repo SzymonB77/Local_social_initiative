@@ -6,7 +6,7 @@ class AttendeesController < ApplicationController
 
   # GET /events/:id/attendees
   def index
-    @event = Event.find(params[:event_id])
+    @event = Event.includes(:users).find(params[:event_id])
     @attendees = @event.attendees
     render json: @attendees, each_serializer: SimpleAttendeeSerializer
   end

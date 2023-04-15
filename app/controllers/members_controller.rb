@@ -6,7 +6,7 @@ class MembersController < ApplicationController
   # GET /groups/:id/members
   def index
     @group = Group.find(params[:group_id])
-    @members = @group.members
+    @members = @group.members.includes(:user)
     render json: @members, each_serializer: SimpleMemberSerializer
   end
 
