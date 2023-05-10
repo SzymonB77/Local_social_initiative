@@ -41,16 +41,25 @@ class AttendeesController < ApplicationController
 
   # DELETE /events/:id/attendees/:id
   def destroy
-    if @current_user.attendees.find_by(event_id: @attendee.event_id,
-                                       role: %w[host
-                                                co-host]) || @current_user.role == 'admin' || @current_user.id == @attendee.user_id && @attendee.destroy
+    if can_delete_attendee?
+      @attendee.destroy
       render json: @attendee
+    # if @current_user.attendees.find_by(event_id: @attendee.event_id,
+    #                                    role: %w[host
+    #                                             co-host]) || @current_user.role == 'admin' || @current_user.id == @attendee.user_id && @attendee.destroy
+    #   render json: @attendee
     else
       render json: { error: 'Unauthorized' }, status: :unprocessable_entity
     end
   end
 
   private
+
+  def can_delete_attendee?
+    @current_user.role == 'admin' ||
+      @current_user.id == @attendee.user_id ||
+      @current_user.attendees.find_by(event_id: @attendee.event_id, role: %w[host co-host]).present?
+  end
 
   def set_attendee
     @attendee = Attendee.find(params[:id])

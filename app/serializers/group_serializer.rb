@@ -26,6 +26,6 @@ class GroupSerializer < ActiveModel::Serializer
 
   def organized_by
     organizer = object.members.find_by(role: 'organizer')
-    SimpleMemberSerializer.new(organizer).attributes
+    SimpleMemberSerializer.new(organizer).attributes if organizer
   end
 end

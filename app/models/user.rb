@@ -27,6 +27,6 @@ class User < ApplicationRecord
   has_many :attendees, dependent: :destroy
   has_many :events, through: :attendees
   has_many :members, dependent: :destroy
-  has_many :gropus, through: :members
+  has_many :groups, through: :members
   has_many :photos
 end

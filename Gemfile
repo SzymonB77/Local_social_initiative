@@ -44,6 +44,16 @@ gem 'awesome_print', '~> 1.8'
 # help to kill N+1 queries and unused eager loading.
 gem 'bullet', '~> 6.1'
 
+gem 'factory_bot_rails', '~> 6.1.0'
+
+gem 'rails-controller-testing'
+gem 'rspec-rails', '~> 5.0.0'
+gem 'shoulda-callback-matchers', '~> 1.1.4'
+gem 'shoulda-matchers', '~> 5.0'
+gem 'test-prof', '~> 1.0'
+# A gem providing "time travel" and "time freezing" capabilities, making it dead simple to test time-dependent code.
+# It provides a unified method to mock Time.now, Date.today, and DateTime.now in a single call.
+gem 'timecop', '~> 0.8.0'
 group :development, :test do
   # Call 'byebug' anywhere in the code to stop execution and get a debugger console
   gem 'byebug', platforms: %i[mri mingw x64_mingw]

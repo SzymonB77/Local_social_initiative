@@ -6,7 +6,7 @@ Rails.application.routes.draw do
   resources :tags
 
   resources :events do
-    resources :attendees
+    resources :attendees, only: %i[index create update destroy]
     resources :event_tags
     resources :photos
   end

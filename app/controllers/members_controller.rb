@@ -23,9 +23,10 @@ class MembersController < ApplicationController
 
   # UPDATE /groups/:id/members/:id
   def update
-    if @current_user.members.find_by(group_id: @member.group_id,
-                                     role: %w[organizer
-                                              co-organizer]) || @current_user.role == 'admin' && @member.update(admin_params)
+    # if @current_user.members.find_by(group_id: @member.group_id,
+    #                                  role: %w[organizer
+    #                                           co-organizer]) || @current_user.role == 'admin' && @member.update(admin_params)
+    if can_update_member? 
       if admin_params[:role] == 'organizer'
         render json: { error: 'Cannot change organizer role' }, status: :unprocessable_entity
       elsif @member.update(admin_params)
@@ -40,9 +41,11 @@ class MembersController < ApplicationController
 
   # DELETE /groups/:id/members/:id
   def destroy
-    if @current_user.members.find_by(group_id: @member.group_id,
-                                     role: %w[organizer
-                                              co-organizer]) || @current_user.role == 'admin' || @current_user.id == @member.user_id && @member.destroy
+    if can_destroy_member? 
+      # @current_user.members.find_by(group_id: @member.group_id,
+      #                                role: %w[organizer
+      #                                         co-organizer]) || @current_user.role == 'admin' || @current_user.id == @member.user_id
+      @member.destroy
       render json: @member
     else
       render json: { error: 'Unauthorized' }, status: :unprocessable_entity
@@ -50,7 +53,16 @@ class MembersController < ApplicationController
   end
 
   private
+  def can_update_member?
+    @current_user.role == 'admin' ||
+    @current_user.members.find_by(group_id: @member.group_id, role: %w[organizer co-organizer])
+  end
 
+  def can_destroy_member? 
+    @current_user.role == 'admin' ||
+    @current_user.members.find_by(group_id: @member.group_id, role: %w[organizer co-organizer]) ||
+    @current_user.id == @member.user_id
+  end
   def set_group
     @group = Group.find(params[:group_id])
   end

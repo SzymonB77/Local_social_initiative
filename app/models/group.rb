@@ -15,7 +15,7 @@ class Group < ApplicationRecord
   validates :name, presence: true
 
   # associations
-  has_many :events
+  has_many :events, dependent: :nullify
   has_many :members, dependent: :destroy, counter_cache: :members_count
   has_many :users, through: :members
 end

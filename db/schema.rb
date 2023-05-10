@@ -36,10 +36,10 @@ ActiveRecord::Schema.define(version: 20_230_408_221_135) do
   end
 
   create_table 'events', force: :cascade do |t|
-    t.string 'name'
-    t.datetime 'start_date'
+    t.string 'name', null: false
+    t.datetime 'start_date', null: false
     t.datetime 'end_date'
-    t.string 'status', default: 'planned'
+    t.string 'status', default: 'planned', null: false
     t.string 'location'
     t.text 'description'
     t.datetime 'created_at', precision: 6, null: false

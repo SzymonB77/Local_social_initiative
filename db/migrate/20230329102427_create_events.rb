@@ -1,10 +1,10 @@
 class CreateEvents < ActiveRecord::Migration[6.1]
   def change
     create_table :events do |t|
-      t.string :name
-      t.datetime :start_date
+      t.string :name, null: false
+      t.datetime :start_date, null: false
       t.datetime :end_date
-      t.string :status, default: 'planned'
+      t.string :status, default: 'planned', null: false
       t.string :location
       t.text :description
 

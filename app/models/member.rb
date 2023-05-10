@@ -18,8 +18,4 @@ class Member < ApplicationRecord
   # associations
   belongs_to :user
   belongs_to :group, counter_cache: :members_count
-
-  # after_create do
-  #   Group.increment_counter(:members_count_cache, group_id)
-  # end
 end

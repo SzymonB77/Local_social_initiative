@@ -32,7 +32,7 @@ class Event < ApplicationRecord
   has_many :photos, dependent: :destroy
 
   def start_date_cannot_be_in_the_past
-    errors.add(:start_date, "can't be in the past") if start_date < Time.zone.now
+    errors.add(:start_date, "can't be in the past") if start_date.present? && start_date < Time.zone.now
   end
 
   def end_date_cannot_be_before_start_date

@@ -20,9 +20,10 @@ class EventSerializer < ActiveModel::Serializer
   has_many :attendees, serializer: SimpleAttendeeSerializer, limit: 4
   has_many :photos, serializer: PhotoSerializer, limit: 4
   belongs_to :group
+  has_many :tags
 
   def hosted_by
     host = object.attendees.find_by(role: 'host')
-    SimpleAttendeeSerializer.new(host).attributes
+    SimpleAttendeeSerializer.new(host).attributes if host
   end
 end
