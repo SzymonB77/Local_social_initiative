@@ -13,7 +13,7 @@ class EventTagsController < ApplicationController
 
   # POST /event/:id/event_tags
   def create
-    if @current_user.attendees.find_by(event_id: @event.id, role: %w[host co-host]) || @current_user.role == 'admin'
+    if can_do_action_with_event_tags?
       tag_name = event_tag_params[:tag][:name]
       tag = Tag.find_by(name: tag_name)
       @event_tag = @event.event_tags.build(tag: tag)
@@ -31,9 +31,8 @@ class EventTagsController < ApplicationController
 
   # DELETE /event/:id/event_tags/:id
   def destroy
-    if @current_user.attendees.find_by(event_id: @event.id,
-                                       role: %w[host
-                                                co-host]) || @current_user.role == 'admin' && @event_tag.destroy
+    if can_do_action_with_event_tags?
+      @event_tag.destroy
       render json: @event_tag
     else
       render json: { error: 'Unauthorized' }, status: :unprocessable_entity
@@ -41,6 +40,11 @@ class EventTagsController < ApplicationController
   end
 
   private
+
+  def can_do_action_with_event_tags?
+    @current_user.attendees.find_by(event_id: @event.id, role: %w[host co-host]) || 
+    @current_user.role == 'admin'
+  end
 
   def set_event_tag
     @event_tag = EventTag.find(params[:id])

@@ -17,9 +17,8 @@ class PhotosController < ApplicationController
 
   # POST /events/:id/photos
   def create
-    if @current_user.attendees.find_by(event_id: @event.id,
-                                       role: %w[host
-                                                co-host]) || @current_user.role == 'admin' && @photo.destroy
+    if can_do_action_with_photo?
+     
       @photo = @event.photos.build(photo_params)
       @photo.user = @current_user
       if @photo.save
@@ -35,9 +34,8 @@ class PhotosController < ApplicationController
 
   # DELETE /events/:id/photos/:id
   def destroy
-    if @current_user.attendees.find_by(event_id: @event.id,
-                                       role: %w[host
-                                                co-host]) || @current_user.role == 'admin' && @photo.destroy
+    if can_do_action_with_photo?
+      @photo.destroy
       render json: @photo
     else
       render json: { error: 'Unauthorized' }, status: :unprocessable_entity
@@ -45,9 +43,15 @@ class PhotosController < ApplicationController
   end
 
   private
+  def can_do_action_with_photo?
+    @current_user.attendees.find_by(event_id: @event.id, role: %w[host co-host]) || 
+    @current_user.role == 'admin'
+  end
 
   def set_photo
     @photo = Photo.find(params[:id])
+  rescue ActiveRecord::RecordNotFound
+    render json: { error: 'Photo not found' }, status: :not_found
   end
 
   def set_event

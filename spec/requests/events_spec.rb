@@ -35,7 +35,7 @@ RSpec.describe EventsController, type: :controller do
     let(:event) { create(:event) }
     let!(:attendees) { create_list(:attendee, 3, event: event) }
     let(:user_token) { jwt_encode(user.id, 'user') }
-
+    let!(:photos) { create_list(:photo, 5, event: event, user: user) }
     context 'when user is authenticated' do
       before { request.headers.merge! 'Authorization' => "Bearer #{user_token}" }
 

@@ -30,9 +30,9 @@ FactoryBot.define do
       end
     end
 
-    after(:create) do |event, evaluator|
-      create_list(:photo, evaluator.photos_count, event: event)
-    end
+    # after(:create) do |event, evaluator|
+    #   create_list(:photo, evaluator.photos_count, event: event)
+    # end
 
     # after(:create) do |event, evaluator|
     #   create_list(:attendee, evaluator.attendees_count, event: event)
