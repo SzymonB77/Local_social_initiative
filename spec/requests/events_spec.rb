@@ -2,17 +2,31 @@ require 'rails_helper'
 include JwtToken
 
 RSpec.describe EventsController, type: :controller do
-  describe 'GET #index' do
-    context 'when events exist' do
-      let!(:events) { create_list(:event, 3) }
+  let(:admin) { create(:user, role: 'admin') }
+  let(:host) { create(:user) }
+  let(:co_host) { create(:user) }
+  let(:attendee) { create(:user) }
+  let(:user) { create(:user) }
+  let(:event) { create(:event) }
+  let(:admin_headers) { { 'Authorization': "Bearer #{jwt_encode(admin.id, 'admin')}" } }
+  let(:user_headers) { { 'Authorization': "Bearer #{jwt_encode(user.id, 'user')}" } }
+  let(:host_headers) { { 'Authorization': "Bearer #{jwt_encode(host.id, 'user')}" } }
+  let(:co_host_headers) { { 'Authorization': "Bearer #{jwt_encode(co_host.id, 'user')}" } }
+  let(:attendee_headers)  { { 'Authorization': "Bearer #{jwt_encode(attendee.id, 'user')}" } }
+  let(:host_attendee) { create(:attendee, event: event, user: host, role: 'host') }
+  let(:co_host_attendee) { create(:attendee, event: event, user: co_host, role: 'co-host') }
+  let(:simple_attendee) { create(:attendee, event: event, user: attendee) }
 
-      it 'returns a success response' do
-        get :index
-        expect(response).to have_http_status(:ok)
-      end
+  describe 'GET #index' do
+    let(:events) { create_list(:event, 3) }
+    
+    context 'when events exist' do
+      before { events }
+      before { get :index }
+
+      it { is_expected.to respond_with 200 }
 
       it 'returns all events' do
-        get :index
         expect(JSON.parse(response.body).size).to eq(3)
       end
     end
@@ -31,21 +45,22 @@ RSpec.describe EventsController, type: :controller do
   end
 
   describe 'GET #show' do
-    let(:user) { create(:user) }
-    let(:event) { create(:event) }
-    let!(:attendees) { create_list(:attendee, 3, event: event) }
-    let(:user_token) { jwt_encode(user.id, 'user') }
-    let!(:photos) { create_list(:photo, 5, event: event, user: user) }
+    let(:attendees) { create_list(:attendee, 3, event: event) }
+    let(:photos) { create_list(:photo, 5, event: event, user: user) }
+
+    before { attendees && photos }
+
     context 'when user is authenticated' do
-      before { request.headers.merge! 'Authorization' => "Bearer #{user_token}" }
+      before do 
+        request.headers.merge! user_headers
+        get :show, params: { id: event.id }
+      end
 
       it 'returns a success response' do
-        get :show, params: { id: event.id }
         expect(response).to have_http_status(:ok)
       end
 
       it 'returns the event details' do
-        get :show, params: { id: event.id }
         response_body = JSON.parse(response.body)
         expect(response_body['id']).to eq(event.id)
         expect(response_body['name']).to eq(event.name)
@@ -57,13 +72,11 @@ RSpec.describe EventsController, type: :controller do
       end
 
       it 'returns all associated photos' do
-        get :show, params: { id: event.id }
         response_body = JSON.parse(response.body)
         expect(response_body['photos'].size).to eq(5)
       end
 
       it 'returns all associated attendees' do
-        get :show, params: { id: event.id }
         response_body = JSON.parse(response.body)
         expect(response_body['attendees'].size).to eq(3)
       end
@@ -75,18 +88,24 @@ RSpec.describe EventsController, type: :controller do
         expect(response).to have_http_status(:ok)
       end
     end
+
+    context 'when event does not exist' do
+      before { get :show, params: { id: 0 } }
+
+      it { is_expected.to respond_with 404 }
+
+      it 'returns error message' do
+        expect(response.body).to eq({ error: 'Event not found' }.to_json)
+      end
+    end
   end
 
   describe 'POST #create' do
-    let(:user) { create(:user) }
-    let(:user_token) { jwt_encode(user.id, 'user') }
-    let(:admin) { create(:admin) }
-    let(:admin_token) { jwt_encode(user.id, 'admin') }
+    let(:event_params) { attributes_for(:event) }
 
     context 'when user is authenticated and parameters are valid' do
-      let(:event_params) { attributes_for(:event) }
 
-      before { request.headers.merge! 'Authorization' => "Bearer #{user_token}" }
+      before { request.headers.merge! user_headers }
 
       it 'creates a new event' do
         expect do
@@ -103,13 +122,11 @@ RSpec.describe EventsController, type: :controller do
 
       it 'returns status code 200 and the created event' do
         post :create, params: { event: event_params }
-
         expect(response).to have_http_status(:ok)
       end
 
       it 'returns deatails of the created event' do
         post :create, params: { event: event_params }
-
         response_body = JSON.parse(response.body)
         expect(response_body['name']).to eq(event_params[:name])
         expect(response_body['status']).to eq(event_params[:status])
@@ -119,9 +136,8 @@ RSpec.describe EventsController, type: :controller do
     end
 
     context 'when user is authenticated and parameters are valid' do
-      let(:event_params) { attributes_for(:event) }
 
-      before { request.headers.merge! 'Authorization' => "Bearer #{admin_token}" }
+      before { request.headers.merge! admin_headers }
 
       it 'creates a new event' do
         expect do
@@ -131,24 +147,23 @@ RSpec.describe EventsController, type: :controller do
 
       it 'returns status code 200 and the created event' do
         post :create, params: { event: event_params }
-
         expect(response).to have_http_status(:ok)
       end
     end
 
     context 'when parameters are invalid' do
-      before { request.headers.merge! 'Authorization' => "Bearer #{user_token}" }
+      before { request.headers.merge! user_headers }
 
-      let(:event_params) { attributes_for(:event, name: nil) }
+      let(:invalid_params) { attributes_for(:event, name: nil) }
 
       it 'does not create a new event' do
         expect do
-          post :create, params: { event: event_params }
+          post :create, params: { event: invalid_params }
         end.not_to change(Event, :count)
       end
 
       it 'returns status unprocessable entity' do
-        post :create, params: { event: event_params }
+        post :create, params: { event: invalid_params }
 
         expect(response).to have_http_status(:unprocessable_entity)
       end
@@ -164,14 +179,11 @@ RSpec.describe EventsController, type: :controller do
   end
 
   describe 'PUT #update' do
-    let!(:admin) { create(:user, role: 'admin') }
-    let!(:user) { create(:user) }
-    let!(:event) { create(:event) }
     let(:new_name) { 'New Name' }
     let(:new_start_date) { event.start_date + 1.day }
     let(:valid_params) { { id: event.id, event: { name: new_name, start_date: new_start_date } } }
-    let(:admin_headers) { { 'Authorization': "Bearer #{jwt_encode(admin.id, 'admin')}" } }
-    let(:user_headers) { { 'Authorization': "Bearer #{jwt_encode(user.id, 'user')}" } }
+
+    before { host_attendee && co_host_attendee && simple_attendee && event }
 
     context 'when user is not authenticated' do
       it 'returns unauthorized status' do
@@ -196,9 +208,7 @@ RSpec.describe EventsController, type: :controller do
       end
 
       context 'and is a attendee of the group and non-host' do
-        before do
-          event.attendees.create(user_id: user.id, role: 'attendee')
-        end
+        before { request.headers.merge!(attendee_headers) }
         it 'returns unauthorized status' do
           put :update, params: valid_params
           expect(response).to have_http_status(:unprocessable_entity)
@@ -211,9 +221,7 @@ RSpec.describe EventsController, type: :controller do
       end
 
       context 'as an host' do
-        before do
-          event.attendees.create(user_id: user.id, role: 'host')
-        end
+        before { request.headers.merge!(host_headers) }
 
         context 'with valid params' do
           it 'returns success status' do
@@ -243,9 +251,8 @@ RSpec.describe EventsController, type: :controller do
       end
 
       context 'as an co-host' do
-        before do
-          event.attendees.create(user_id: user.id, role: 'co-host')
-        end
+
+        before { request.headers.merge!(co_host_headers) }
 
         context 'with valid params' do
           it 'returns success status' do
@@ -278,26 +285,8 @@ RSpec.describe EventsController, type: :controller do
   end
 
   describe 'DELETE #destroy' do
-    let(:user1) { create(:user) }
-    let(:user2) { create(:user) }
-    let(:user3) { create(:user) }
-    let(:admin) { create(:user, role: 'admin') }
-    let(:event) { create(:event) }
-    let(:host) { create(:attendee, event: event, user: user1, role: 'host') }
-    let(:co_host) { create(:attendee, event: event, user: user2, role: 'co-host') }
-    let(:attendee) { create(:attendee, event: event, user: user3, role: 'attendee') }
-    let(:admin_attendee) { create(:attendee, event: event, user: admin, role: 'attendee') }
-    let(:user1_headers) { { 'Authorization': "Bearer #{jwt_encode(user1.id, 'user')}" } }
-    let(:user2_headers) { { 'Authorization': "Bearer #{jwt_encode(user2.id, 'user')}" } }
-    let(:user3_headers) { { 'Authorization': "Bearer #{jwt_encode(user3.id, 'user')}" } }
-    let(:admin_headers) { { 'Authorization': "Bearer #{jwt_encode(admin.id, 'admin')}" } }
 
-    before do
-      host
-      co_host
-      attendee
-      admin_attendee
-    end
+    before { host_attendee && co_host_attendee && simple_attendee && event }
 
     context 'when user is not authenticated' do
       it 'returns unauthorized status' do
@@ -314,7 +303,7 @@ RSpec.describe EventsController, type: :controller do
 
     context 'when user is authenticated' do
       context 'when the user is not a attendee of the event' do
-        before { request.headers.merge! user3_headers }
+        before { request.headers.merge! user_headers }
         it 'returns forbidden status' do
           delete :destroy, params: { id: event.id }
           expect(response).to have_http_status(:unprocessable_entity)
@@ -328,7 +317,7 @@ RSpec.describe EventsController, type: :controller do
       end
 
       context 'when the user is an host of the event' do
-        before { request.headers.merge! user1_headers }
+        before { request.headers.merge! host_headers }
 
         it 'deletes the event' do
           expect do
@@ -343,7 +332,7 @@ RSpec.describe EventsController, type: :controller do
       end
 
       context 'when the user is a co-host of the event' do
-        before { request.headers.merge! user2_headers }
+        before { request.headers.merge! co_host_headers }
 
         it 'returns forbidden status' do
           delete :destroy, params: { id: event.id }

@@ -2,58 +2,58 @@ require 'rails_helper'
 include JwtToken
 
 RSpec.describe UsersController, type: :controller do
+  let(:admin) { create(:user, :admin) }
+  let(:user) { create(:user) }
+  let(:admin_headers) { { 'Authorization': "Bearer #{jwt_encode(admin.id, 'admin')}" } }
+  let(:user_headers) { { 'Authorization': "Bearer #{jwt_encode(user.id, 'user')}" } }
+
   describe 'GET #index' do
-    let(:admin) { create(:user, role: 'admin') }
-    let(:user) { create(:user) }
-    let!(:users) { create_list(:user, 3) }
-    let(:admin_headers) { { 'Authorization': "Bearer #{jwt_encode(admin.id, 'admin')}" } }
-    let(:user_headers) { { 'Authorization': "Bearer #{jwt_encode(user.id, 'user')}" } }
+    let(:users) { create_list(:user, 3) }
 
     context 'when admin is authenticated' do
-      before { request.headers.merge! admin_headers }
-      let(:users) { create_list(:user, 3) }
-      it 'returns a success response' do
+      before do
+        request.headers.merge! admin_headers
+        users
         get :index
-        expect(response).to have_http_status(:ok)
       end
 
+      it { is_expected.to respond_with 200 }
+
       it 'returns all users' do
-        get :index
         expect(JSON.parse(response.body).size).to eq(4)
       end
     end
 
     context 'when user is authenticated' do
-      before { request.headers.merge! user_headers }
-
-      it 'raises an Access Denied error if user role is not admin' do
+      before do
+        request.headers.merge! user_headers
+        users
         get :index
-        expect(response).to have_http_status(:unauthorized)
       end
+
+      it { is_expected.to respond_with 401 }
     end
   end
 
   describe 'GET #show' do
-    let(:admin) { create(:user, role: 'admin') }
-    let(:user) { create(:user) }
-    let(:admin_headers) { { 'Authorization': "Bearer #{jwt_encode(admin.id, 'admin')}" } }
-    let(:user_headers) { { 'Authorization': "Bearer #{jwt_encode(user.id, 'user')}" } }
+    let(:user_params) { { id: user.id } }
+    let(:admin_params) { { id: admin.id } }
 
     context 'when user is authenticated' do
       before { request.headers.merge! user_headers }
 
       it 'returns http success' do
-        get :show, params: { id: user.id }
+        get :show, params: user_params
         expect(response).to have_http_status(:ok)
       end
 
       it 'has no access to data other than his own' do
-        get :show, params: { id: admin.id }
+        get :show, params: admin_params
         expect(response).to have_http_status(:unauthorized)
       end
 
       it 'renders user data' do
-        get :show, params: { id: user.id }
+        get :show, params: user_params
         expect(JSON.parse(response.body)['id']).to eq(user.id)
       end
     end
@@ -62,26 +62,34 @@ RSpec.describe UsersController, type: :controller do
       before { request.headers.merge! admin_headers }
 
       it 'returns http success' do
-        get :show, params: { id: user.id }
+        get :show, params: admin_params
         expect(response).to have_http_status(:ok)
       end
 
-      it 'has access to data other than his own' do
-        get :show, params: { id: user.id }
-        expect(JSON.parse(response.body)['id']).to eq(user.id)
+      it 'renders his own data' do
+        get :show, params: admin_params
+        expect(JSON.parse(response.body)['id']).to eq(admin.id)
       end
 
-      it 'renders user data' do
-        get :show, params: { id: admin.id }
-        expect(JSON.parse(response.body)['id']).to eq(admin.id)
+      it 'has access to data other than his own' do
+        get :show, params: user_params
+        expect(JSON.parse(response.body)['id']).to eq(user.id)
       end
     end
 
-    context 'when user is not authenticated' do
-      it 'returns http unauthorized' do
-        get :show, params: { id: user.id }
-        expect(response).to have_http_status(:unauthorized)
+    context 'when user does not exist' do
+      before do
+        request.headers.merge! admin_headers
+        get :show, params: { id: 999_999_999 }
       end
+
+      it { is_expected.to respond_with 404 }
+      it { expect(response.body).to eq({ error: 'User not found' }.to_json) }
+    end
+
+    context 'when user is not authenticated' do
+      before { get :show, params: user_params }
+      it { is_expected.to respond_with 401 }
     end
   end
 
@@ -96,9 +104,8 @@ RSpec.describe UsersController, type: :controller do
     end
 
     context 'when email is nil' do
-      let(:email_nil_params) do
-        { user: attributes_for(:user, email: nil) }
-      end
+      let(:email_nil_params) { { user: attributes_for(:user, email: nil) } }
+
       it 'does not create a new user' do
         expect do
           post :create, params: email_nil_params
@@ -113,20 +120,16 @@ RSpec.describe UsersController, type: :controller do
 
     context 'when email is already taken' do
       let(:existing_user) { create(:user) }
-      let(:invalid_params) do
-        { user: attributes_for(:user, email: existing_user.email) }
-      end
+      let(:existing_user_params) { { user: attributes_for(:user, email: existing_user.email) } }
 
       it 'returns an unprocessable entity response' do
-        post :create, params: invalid_params
+        post :create, params: existing_user_params
         expect(response).to have_http_status(:unprocessable_entity)
       end
     end
 
     context 'when the password is nil' do
-      let(:invalid_params) do
-        { user: attributes_for(:user, password: nil) }
-      end
+      let(:invalid_params) { { user: attributes_for(:user, password: nil) } }
 
       it 'does not create a new user' do
         expect do
@@ -141,9 +144,7 @@ RSpec.describe UsersController, type: :controller do
     end
 
     context 'when the nickname is nil' do
-      let(:invalid_params) do
-        { user: attributes_for(:user, nickname: nil) }
-      end
+      let(:invalid_params) { { user: attributes_for(:user, nickname: nil) } }
 
       it 'does not create a new user' do
         expect do
@@ -175,26 +176,17 @@ RSpec.describe UsersController, type: :controller do
   end
 
   describe 'PUT #update' do
-    let(:admin) { create(:user, role: 'admin') }
-    let(:user) { create(:user) }
-    let(:params) do
-      {
-        id: user.id,
-        user: {
-          name: 'John',
-          surname: 'Doe'
-        }
-      }
-    end
-    let(:headers) { { 'Authorization': "Bearer #{jwt_encode(user.id, 'user')}" } }
+    let(:valid_params) { { id: user.id, user: { name: 'John', surname: 'Doe' } } }
+    let(:id_invalid_params) { { id: 0, user: { name: 'John', surname: 'Doe' } } }
+    let(:email_invalid_params) { { id: user.id, user: { email: nil } } }
 
     context 'when user is authenticated and authorized' do
-      before { request.headers.merge! headers }
-      before { put :update, params: params }
-
-      it 'returns 200 status code' do
-        expect(response).to have_http_status(:ok)
+      before do
+        request.headers.merge! user_headers
+        put :update, params: valid_params
       end
+
+      it { is_expected.to respond_with 200 }
 
       it 'updates user attributes' do
         user.reload
@@ -204,13 +196,12 @@ RSpec.describe UsersController, type: :controller do
     end
 
     context 'when admin is authenticated and authorized' do
-      let(:headers) { { 'Authorization': "Bearer #{jwt_encode(admin.id, 'admin')}" } }
-      before { request.headers.merge! headers }
-      before { put :update, params: params }
-
-      it 'returns 200 status code' do
-        expect(response).to have_http_status(:ok)
+      before do
+        request.headers.merge! admin_headers
+        put :update, params: valid_params
       end
+
+      it { is_expected.to respond_with 200 }
 
       it 'updates user attributes' do
         user.reload
@@ -220,87 +211,68 @@ RSpec.describe UsersController, type: :controller do
     end
 
     context 'when user is not authenticated' do
-      before { put :update, params: params }
+      before { put :update, params: valid_params }
 
-      it 'returns 401 status code' do
-        expect(response).to have_http_status(:unauthorized)
-      end
+      it { is_expected.to respond_with 401 }
     end
 
     context 'when user id is invalid' do
-      let(:params) do
-        {
-          id: 0,
-          user: {
-            name: 'John',
-            surname: 'Doe'
-          }
-        }
+      before do
+        request.headers.merge! user_headers
+        put :update, params: id_invalid_params
       end
-      let(:headers) { { 'Authorization': "Bearer #{jwt_encode(admin.id, 'user')}" } }
-      before { request.headers.merge! headers }
-      before { put :update, params: params }
 
-      it 'returns 404 status code' do
-        expect(response).to have_http_status(:not_found)
-      end
+      it { is_expected.to respond_with 404 }
     end
 
     context 'when user params are invalid' do
-      let(:params) do
-        {
-          id: user.id,
-          user: {
-            email: nil
-          }
-        }
+      before do
+        request.headers.merge! user_headers
+        put :update, params: email_invalid_params
       end
-      let(:headers) { { 'Authorization': "Bearer #{jwt_encode(admin.id, 'user')}" } }
-      before { request.headers.merge! headers }
-      before { put :update, params: params }
 
-      it 'returns 422 status code' do
-        expect(response).to have_http_status(:unprocessable_entity)
-      end
+      it { is_expected.to respond_with 422 }
     end
   end
 
   describe 'DELETE #destroy' do
-    let(:admin) { create(:user, role: 'admin') }
-    let!(:user) { create(:user) }
-    let(:admin_headers) { { 'Authorization': "Bearer #{jwt_encode(admin.id, 'admin')}" } }
-    let(:user_headers) { { 'Authorization': "Bearer #{jwt_encode(user.id, 'user')}" } }
+    let(:user_params) { { id: user.id } }
+    let(:admin_params) { { id: admin.id } }
 
     context 'when admin is authenticated' do
-      before { request.headers.merge! admin_headers }
+      before do
+        request.headers.merge! admin_headers
+        delete :destroy, params: user_params
+      end
 
       it 'deletes the user' do
-        expect do
-          delete :destroy, params: { id: user.id }
-        end.to change(User, :count).by(-1)
+        expect(User.exists?(user.id)).to be_falsey
       end
 
       it 'returns the deleted user' do
-        delete :destroy, params: { id: user.id }
         expect(JSON.parse(response.body)['id']).to eq(user.id)
       end
     end
 
     context 'when user is authenticated' do
-      before { request.headers.merge! user_headers }
+      before do
+        request.headers.merge! user_headers
+        delete :destroy, params: user_params
+      end
 
       it 'deletes the user' do
-        expect do
-          delete :destroy, params: { id: user.id }
-        end.to change(User, :count).by(-1)
+        expect(User.exists?(user.id)).to be_falsey
+      end
+
+      it 'returns the deleted user' do
+        expect(JSON.parse(response.body)['id']).to eq(user.id)
       end
     end
 
     context 'when user is not authenticated' do
-      it 'returns http unauthorized' do
-        delete :destroy, params: { id: user.id }
-        expect(response).to have_http_status(:unauthorized)
-      end
+      before { delete :destroy, params: { id: user.id } }
+
+      it { is_expected.to respond_with 401 }
     end
 
     context 'when user try to delete another user' do

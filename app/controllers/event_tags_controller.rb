@@ -42,16 +42,20 @@ class EventTagsController < ApplicationController
   private
 
   def can_do_action_with_event_tags?
-    @current_user.attendees.find_by(event_id: @event.id, role: %w[host co-host]) || 
-    @current_user.role == 'admin'
+    @current_user.attendees.find_by(event_id: @event.id, role: %w[host co-host]) ||
+      @current_user.role == 'admin'
   end
 
   def set_event_tag
     @event_tag = EventTag.find(params[:id])
+  rescue ActiveRecord::RecordNotFound
+    render json: { error: 'EventTag not found' }, status: :not_found
   end
 
   def set_event
     @event = Event.find(params[:event_id])
+  rescue ActiveRecord::RecordNotFound
+    render json: { error: 'Event not found' }, status: :not_found
   end
 
   def event_tag_params

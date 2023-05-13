@@ -2,17 +2,22 @@ require 'rails_helper'
 include JwtToken
 
 RSpec.describe EventTagsController, type: :controller do
-  describe "GET /index" do
-    let(:event) { create(:event) }
-    let!(:tag1) { create(:tag) }
-    let!(:tag2) { create(:tag) }
+  let(:event) { create(:event) }
+  let(:tag) { create(:tag) }
+  let(:host) { create(:user) }
+  let(:host_attendee) { create(:attendee, user: host, event: event, role: 'host') }
+  let(:host_headers) { { 'Authorization': "Bearer #{jwt_encode(host.id, 'user')}" } }
+
+  describe 'GET /index' do
+    let(:tag1) { create(:tag) }
+    let(:tag2) { create(:tag) }
 
     context 'when the event has photos' do
-      let!(:event_tag1) { create(:event_tag, event: event, tag: tag1) }
-      let!(:event_tag2) { create(:event_tag, event: event, tag: tag2) }
-      before do
-        get :index, params: { event_id: event.id }
-      end
+      let(:event_tag1) { create(:event_tag, event: event, tag: tag1) }
+      let(:event_tag2) { create(:event_tag, event: event, tag: tag2) }
+
+      before {event_tag1 && event_tag2}
+      before { get :index, params: { event_id: event.id } }
 
       it 'returns a success response' do
         expect(response).to have_http_status(:ok)
@@ -21,13 +26,11 @@ RSpec.describe EventTagsController, type: :controller do
       it 'returns all photos for the specified event' do
         expect(JSON.parse(response.body).size).to eq(2)
       end
-
     end
 
     context 'when the event does not have any photos' do
-      before do
-        get :index, params: { event_id: event.id }
-      end
+
+      before { get :index, params: { event_id: event.id } }
 
       it 'returns a success response' do
         expect(response).to have_http_status(:ok)
@@ -40,37 +43,25 @@ RSpec.describe EventTagsController, type: :controller do
   end
 
   describe 'POST #create' do
-    let(:event) { create(:event) }
-    let(:tag) { create(:tag) }
-    let(:host) { create(:user) }
-    let(:host_attendee) { create(:attendee, user: host, event: event, role: 'host') }
-    let(:host_token) { jwt_encode(host.id, 'user') }
-
-
     context 'when user is authenticated' do
-
-      before do
-        host_attendee
-      end
+      before { host_attendee }
 
       context 'with valid parameters' do
-        let(:valid_params) { { event_tag: { tag: { name: tag.name } }, event_id: event.id } } 
-  
-        before do
-          request.headers.merge! 'Authorization' => "Bearer #{host_token}"
-        end
-  
+        let(:valid_params) { { event_tag: { tag: { name: tag.name } }, event_id: event.id } }
+
+        before { request.headers.merge! host_headers }
+
         it 'creates a new event tag' do
           expect do
             post :create, params: valid_params
           end.to change(EventTag, :count).by(1)
         end
-  
+
         it 'returns a success response' do
           post :create, params: valid_params
           expect(response).to have_http_status(:ok)
         end
-  
+
         it 'returns the created event tag' do
           post :create, params: valid_params
           json_response = JSON.parse(response.body)
@@ -78,37 +69,36 @@ RSpec.describe EventTagsController, type: :controller do
           expect(json_response['tag_id']).to eq(tag.id)
         end
       end
-  
-      context 'with invalid parameters' do
-        let(:invalid_params) { { event_tag: { tag: { name: nil } }, event_id: event.id } } 
 
-  
+      context 'with invalid parameters' do
+        let(:invalid_params) { { event_tag: { tag: { name: nil } }, event_id: event.id } }
+
         before do
-          request.headers.merge! 'Authorization' => "Bearer #{host_token}"
+          request.headers.merge! host_headers
         end
-  
+
         it 'does not create a new event tag' do
           expect do
             post :create, params: invalid_params
           end.to_not change(EventTag, :count)
         end
-  
+
         it 'returns an error response' do
           post :create, params: invalid_params
           expect(response).to have_http_status(:unprocessable_entity)
         end
       end
     end
-  
+
     context 'when user is not authenticated' do
-      let(:valid_params) { { event_tag: { tag: { name: tag.name } }, event_id: event.id } } 
-  
+      let(:valid_params) { { event_tag: { tag: { name: tag.name } }, event_id: event.id } }
+
       it 'does not create a new event tag' do
         expect do
           post :create, params: valid_params
         end.to_not change(EventTag, :count)
       end
-  
+
       it 'returns an error response' do
         post :create, params: valid_params
         expect(response).to have_http_status(:unauthorized)
@@ -117,20 +107,12 @@ RSpec.describe EventTagsController, type: :controller do
   end
 
   describe 'DELETE #destroy' do
-    let(:event) { create(:event) }
-    let(:tag) { create(:tag) }
-    let(:host) { create(:user) }
-    let(:host_attendee) { create(:attendee, user: host, event: event, role: 'host') }
-    let(:host_token) { jwt_encode(host.id, 'user') }
     let(:event_tag) { create(:event_tag, event: event, tag: tag) }
-   
-    context 'when user is authorized' do
-      before do
-        host_attendee
-        event_tag
-      end
 
-      before { request.headers.merge! 'Authorization' => "Bearer #{host_token}" }
+    before { host_attendee && event_tag }
+    context 'when user is authorized' do
+
+      before { request.headers.merge! host_headers }
 
       it 'deletes the event tag' do
         expect do

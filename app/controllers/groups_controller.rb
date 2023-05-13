@@ -58,6 +58,8 @@ class GroupsController < ApplicationController
 
   def set_group
     @group = Group.includes(:users).find(params[:id])
+  rescue ActiveRecord::RecordNotFound
+    render json: { error: 'Group not found' }, status: :not_found
   end
 
   def group_params

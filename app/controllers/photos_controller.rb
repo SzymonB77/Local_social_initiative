@@ -18,7 +18,7 @@ class PhotosController < ApplicationController
   # POST /events/:id/photos
   def create
     if can_do_action_with_photo?
-     
+
       @photo = @event.photos.build(photo_params)
       @photo.user = @current_user
       if @photo.save
@@ -43,9 +43,10 @@ class PhotosController < ApplicationController
   end
 
   private
+
   def can_do_action_with_photo?
-    @current_user.attendees.find_by(event_id: @event.id, role: %w[host co-host]) || 
-    @current_user.role == 'admin'
+    @current_user.attendees.find_by(event_id: @event.id, role: %w[host co-host]) ||
+      @current_user.role == 'admin'
   end
 
   def set_photo

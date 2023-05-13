@@ -2,24 +2,42 @@ require 'rails_helper'
 include JwtToken
 
 RSpec.describe GroupsController, type: :controller do
-  describe 'GET #index' do
-    let!(:groups) { create_list(:group, 3) }
+  let(:group) { create(:group) }
+  let(:user_headers) { { 'Authorization': "Bearer #{jwt_encode(user.id, 'user')}" } }  
+  let(:user) { create(:user) }
+  let(:member) { create(:user) }
+  let(:organizer) { create(:user) }
+  let(:co_organizer) { create(:user) }
+  let(:admin) { create(:user, role: 'admin') }
+  let(:organizer_member) { create(:member, group: group, user: organizer, role: 'organizer') }
+  let(:co_organizer_member) { create(:member, group: group, user: co_organizer, role: 'co-organizer') }
+  let(:simple_member) { create(:member, group: group, user: member) }
+  let(:admin_member) { create(:member, group: group, user: admin, role: 'member') }
+  let(:organizer_headers) { { 'Authorization': "Bearer #{jwt_encode(organizer.id, 'user')}" } }
+  let(:co_organizer_headers) { { 'Authorization': "Bearer #{jwt_encode(co_organizer.id, 'user')}" } }
+  let(:member_headers)  { { 'Authorization': "Bearer #{jwt_encode(member.id, 'user')}" } }
+  let(:admin_headers) { { 'Authorization': "Bearer #{jwt_encode(admin.id, 'admin')}" } }
 
-    it 'returns a success response' do
+  
+  describe 'GET #index' do
+    let(:groups) { create_list(:group, 3) }
+    before do
+      groups
       get :index
-      expect(response).to have_http_status(:ok)
     end
 
+    it { is_expected.to respond_with 200 }
+
     it 'returns all groups' do
-      get :index
       expect(JSON.parse(response.body).size).to eq(3)
     end
   end
 
   describe 'GET #show' do
-    let(:group) { create(:group) }
-    let!(:members) { create_list(:member, 4, group: group) }
+    let(:members) { create_list(:member, 4, group: group) }
 
+    before { members }
+    
     context 'when user is not authenticated' do
       it 'returns a success response' do
         get :show, params: { id: group.id }
@@ -47,9 +65,20 @@ RSpec.describe GroupsController, type: :controller do
         expect(response_body['members'].size).to eq(4)
       end
     end
+
+    context 'when group does not exist' do
+      before { get :show, params: { id: 0 } }
+
+      it { is_expected.to respond_with 404 }
+
+      it 'returns error message' do
+        expect(response.body).to eq({ error: 'Group not found' }.to_json)
+      end
+    end
   end
 
   describe 'POST #create' do
+
     context 'when user is not authenticated' do
       it 'returns unauthorized status' do
         post :create, params: { group: attributes_for(:group) }
@@ -64,10 +93,9 @@ RSpec.describe GroupsController, type: :controller do
     end
 
     context 'when user is authenticated' do
-      let(:user) { create(:user) }
-      let(:user_token) { jwt_encode(user.id, 'user') }
 
-      before { request.headers.merge! 'Authorization' => "Bearer #{user_token}" }
+
+      before { request.headers.merge! user_headers }
 
       it 'creates a new group' do
         expect do
@@ -95,10 +123,9 @@ RSpec.describe GroupsController, type: :controller do
     end
 
     context 'when admin is authenticated' do
-      let(:admin) { create(:user, role: 'admin') }
-      let(:admin_token) { jwt_encode(admin.id, 'admin')  }
 
-      before { request.headers.merge! 'Authorization' => "Bearer #{admin_token}" }
+
+      before { request.headers.merge! admin_headers }
 
       it 'creates a new group' do
         expect do
@@ -127,37 +154,35 @@ RSpec.describe GroupsController, type: :controller do
   end
 
   describe 'PUT #update' do
-    let!(:admin) { create(:user, role: 'admin') }
-    let!(:user) { create(:user) }
-    let!(:group) { create(:group) }
     let(:new_group_name) { 'New Group Name' }
     let(:valid_params) { { id: group.id, group: { name: new_group_name } } }
-    let(:admin_headers) { { 'Authorization': "Bearer #{jwt_encode(admin.id, 'admin')}" } }
-    let(:user_headers) { { 'Authorization': "Bearer #{jwt_encode(user.id, 'user')}" } }
 
+    before { organizer_member && co_organizer_member && admin_member && simple_member && group }
+    
     context 'when user is not authenticated' do
+      before { put :update, params: valid_params }
+
       it 'returns unauthorized status' do
-        put :update, params: valid_params
         expect(response).to have_http_status(:unauthorized)
       end
 
       it 'does not update the group' do
-        put :update, params: valid_params
         expect(group.reload.updated_at).to eq(group.updated_at)
       end
     end
 
     context 'when user is authenticated' do
       context 'and is not a member of the group' do
-        before { request.headers.merge! user_headers }
+        before do 
+          request.headers.merge! user_headers 
+          put :update, params: valid_params
+        end
 
         it 'returns unauthorized status' do
-          put :update, params: valid_params
           expect(response).to have_http_status(:unprocessable_entity)
         end
 
         it 'does not update the group' do
-          put :update, params: valid_params
           expect(group.reload.updated_at).to eq(group.updated_at)
         end
       end
@@ -165,34 +190,30 @@ RSpec.describe GroupsController, type: :controller do
       context 'and is a member of the group' do
         context 'as a non-organizer' do
           before do
-            group.members.create(user_id: user.id, role: 'member')
-            request.headers.merge! user_headers
+            request.headers.merge! member_headers
+            put :update, params: valid_params
           end
           it 'returns unauthorized status' do
-            put :update, params: valid_params
             expect(response).to have_http_status(:unprocessable_entity)
           end
 
           it 'does not update the group' do
-            put :update, params: valid_params
             expect(group.reload.updated_at).to eq(group.updated_at)
           end
         end
 
         context 'as an organizer' do
           before do
-            group.members.create(user_id: user.id, role: 'organizer')
-            request.headers.merge! user_headers
+            request.headers.merge! organizer_headers
+            put :update, params: valid_params
           end
 
           context 'with valid params' do
             it 'returns success status' do
-              put :update, params: valid_params
               expect(response).to have_http_status(:ok)
             end
 
             it 'updates the group' do
-              put :update, params: valid_params
               expect(group.reload.name).to eq(new_group_name)
             end
           end
@@ -200,13 +221,15 @@ RSpec.describe GroupsController, type: :controller do
           context 'with invalid params' do
             let(:invalid_name) { nil }
 
+            before do
+              request.headers.merge! organizer_headers
+               put :update, params: { id: group.id, group: { name: invalid_name } }
+            end
             it 'returns unprocessable_entity status' do
-              put :update, params: { id: group.id, group: { name: invalid_name } }
               expect(response).to have_http_status(:unprocessable_entity)
             end
 
             it 'does not update the group' do
-              put :update, params: { id: group.id, group: { name: invalid_name } }
               expect(group.reload.updated_at).to eq(group.updated_at)
             end
           end
@@ -215,13 +238,11 @@ RSpec.describe GroupsController, type: :controller do
     end
 
     context 'when admin is authenticated' do
-      let(:admin_token) { jwt_encode(admin.id, 'admin') }
 
-      before { request.headers.merge! 'Authorization' => "Bearer #{admin_token}" }
+      before { request.headers.merge! admin_headers }
 
       context 'when admin is not a member of the group' do
-        let!(:group) { create(:group) }
-
+ 
         it 'returns a success response' do
           put :update, params: valid_params
           expect(response).to have_http_status(:ok)
@@ -230,45 +251,14 @@ RSpec.describe GroupsController, type: :controller do
         it 'updates the group' do
           put :update, params: valid_params
           expect(group.reload.name).to eq(new_group_name)
-        end
-      end
-
-      context 'when admin is an organizer of the group' do
-        it 'updates the group' do
-          put :update, params: valid_params
-          expect(group.reload.name).to eq(new_group_name)
-        end
-
-        it 'returns a success response' do
-          put :update, params: valid_params
-          expect(response).to have_http_status(:ok)
-        end
-
-        it 'returns the updated group' do
-          put :update, params: valid_params
-          expect(JSON.parse(response.body)['name']).to eq(new_group_name)
         end
       end
     end
   end
 
   describe 'DELETE #destroy' do
-    let(:user1) { create(:user) }
-    let(:user2) { create(:user) }
-    let(:admin) { create(:user, role: 'admin') }
-    let(:group) { create(:group) }
-    let(:organizer) { create(:member, group: group, user: user1, role: 'organizer') }
-    let(:co_organizer) { create(:member, group: group, user: user2, role: 'co-organizer') }
-    let(:admin_member) { create(:member, group: group, user: admin, role: 'member') }
-    let(:user1_headers) { { 'Authorization': "Bearer #{jwt_encode(user1.id, 'user')}" } }
-    let(:user2_headers) { { 'Authorization': "Bearer #{jwt_encode(user2.id, 'user')}" } }
-    let(:admin_headers) { { 'Authorization': "Bearer #{jwt_encode(admin.id, 'admin')}" } }
 
-    before do
-      organizer
-      co_organizer
-      admin_member
-    end
+    before { organizer_member && co_organizer_member && admin_member && simple_member }
 
     context 'when user is not authenticated' do
       it 'returns unauthorized status' do
@@ -285,8 +275,8 @@ RSpec.describe GroupsController, type: :controller do
 
     context 'when user is authenticated' do
       context 'when the user is not a member of the group' do
-        before { request.headers.merge! user1_headers }
-        before { request.headers.merge! user2_headers }
+        before { request.headers.merge! member_headers }
+
         it 'returns forbidden status' do
           delete :destroy, params: { id: group.id }
           expect(response).to have_http_status(:unprocessable_entity)
@@ -300,10 +290,7 @@ RSpec.describe GroupsController, type: :controller do
       end
 
       context 'when the user is an organizer of the group' do
-        before do
-          organizer
-          request.headers.merge! user1_headers
-        end
+        before { request.headers.merge! organizer_headers }
 
         it 'deletes the group' do
           expect do
@@ -318,11 +305,7 @@ RSpec.describe GroupsController, type: :controller do
       end
 
       context 'when the user is a co-organizer of the group' do
-        before do
-          co_organizer
-          request.headers.merge! user2_headers
-        end
-
+        before { request.headers.merge! co_organizer_headers }
         it 'returns forbidden status' do
           delete :destroy, params: { id: group.id }
           expect(response).to have_http_status(:unprocessable_entity)

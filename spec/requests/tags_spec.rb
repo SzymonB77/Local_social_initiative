@@ -2,35 +2,32 @@ require 'rails_helper'
 include JwtToken
 
 RSpec.describe TagsController, type: :controller do
+  let(:user) { create(:user) }
+  let(:user_token) { jwt_encode(user.id, 'user') }
+  let(:admin) { create(:user, role: 'admin') }
+  let(:admin_token) { jwt_encode(admin.id, 'admin') }
+  let(:tag) { create(:tag) }
+
   describe 'GET #index' do
-    # let!(:admin) { create(:user, role: 'admin') }
-    # let!(:user) { create(:user) }
-    let!(:tags) { create_list(:tag, 5) }
-    # let(:admin_headers) { { 'Authorization': "Bearer #{jwt_encode(admin.id, 'admin')}" } }
-    # let(:user_headers) { { 'Authorization': "Bearer #{jwt_encode(user.id, 'user')}" } }
+    let(:tags) { create_list(:tag, 5) }
 
     context 'when user is not authenticated' do
-      it 'returns all tags' do
+      before do
+        tags
         get :index
+      end
+
+      it { is_expected.to respond_with 200 }
+      it 'returns all tags' do
         expect(JSON.parse(response.body).size).to eq(5)
       end
-
-      it 'returns a success response' do
-        get :index
-        expect(response).to have_http_status(:ok)
-      end
-
-      # it 'returns all associated events' do
-      #   get :index
-      #   expect(JSON.parse(response.body)[0]['events'].size).to eq(3)
-      # end
     end
   end
 
   describe 'GET #show' do
-    let!(:tag) { create(:tag) }
-
     context 'when user is not authenticated' do
+      before { tag }
+
       it 'returns a success response' do
         get :show, params: { id: tag.id }
         expect(response).to have_http_status(:ok)
@@ -41,6 +38,15 @@ RSpec.describe TagsController, type: :controller do
         get :show, params: { id: tag.id }
         expect(JSON.parse(response.body)['events'].size).to eq(3)
       end
+    end
+
+    context 'when user does not exist' do
+      before do
+        get :show, params: { id: 999_999_999 }
+      end
+
+      it { is_expected.to respond_with 404 }
+      it { expect(response.body).to eq({ error: 'Tag not found' }.to_json) }
     end
   end
 
@@ -59,10 +65,6 @@ RSpec.describe TagsController, type: :controller do
     end
 
     context 'when user is authenticated' do
-      let(:user) { create(:user) }
-      let(:user_token) { jwt_encode(user.id, 'user') }
-      let(:tag) { create(:tag) }
-
       before { request.headers.merge! 'Authorization' => "Bearer #{user_token}" }
 
       it 'returns unauthorized status' do
@@ -78,9 +80,6 @@ RSpec.describe TagsController, type: :controller do
     end
 
     context 'when admin is authenticated' do
-      let(:admin) { create(:user, role: 'admin') }
-      let(:admin_token) { jwt_encode(admin.id, 'admin') }
-
       before { request.headers.merge! 'Authorization' => "Bearer #{admin_token}" }
 
       context 'with valid parameters' do
@@ -121,36 +120,30 @@ RSpec.describe TagsController, type: :controller do
   end
 
   describe 'PUT #update' do
-    let(:admin) { create(:user, role: 'admin') }
-    let(:admin_token) { jwt_encode(admin.id, 'admin') }
-    let!(:tag) { create(:tag) }
     let(:new_tag_name) { 'New Tag Name' }
     let(:valid_params) { { id: tag.id, tag: { name: new_tag_name } } }
+    let(:invalid_params) { { id: tag.id, tag: { name: nil } } }
 
     context 'when admin is authenticated' do
       before { request.headers.merge! 'Authorization' => "Bearer #{admin_token}" }
 
       context 'with valid parameters' do
+        before { put :update, params: valid_params }
         it 'updates the tag' do
-          put :update, params: valid_params
           tag.reload
           expect(tag.name).to eq(new_tag_name)
         end
 
         it 'returns a success response' do
-          put :update, params: valid_params
           expect(response).to have_http_status(:ok)
         end
 
         it 'returns the updated tag' do
-          put :update, params: valid_params
           expect(JSON.parse(response.body)['name']).to eq(new_tag_name)
         end
       end
 
       context 'with invalid parameters' do
-        let(:invalid_params) { { id: tag.id, tag: { name: nil } } }
-
         it 'does not update the tag' do
           old_tag_name = tag.name
           put :update, params: invalid_params
@@ -166,9 +159,6 @@ RSpec.describe TagsController, type: :controller do
     end
 
     context 'when user is authenticated' do
-      let(:user) { create(:user) }
-      let(:user_token) { jwt_encode(user.id, 'user') }
-
       before { request.headers.merge! 'Authorization' => "Bearer #{user_token}" }
 
       it 'returns unauthorized status' do
@@ -200,11 +190,7 @@ RSpec.describe TagsController, type: :controller do
   end
 
   describe 'DELETE #destroy' do
-    let!(:admin) { create(:user, role: 'admin') }
-    let!(:user) { create(:user) }
-    let!(:tag) { create(:tag) }
-    let(:admin_token) { jwt_encode(admin.id, 'admin') }
-    let(:user_token) { jwt_encode(user.id, 'user') }
+    before { tag }
 
     context 'when the user is logged in as an admin' do
       before { request.headers.merge! 'Authorization' => "Bearer #{admin_token}" }
