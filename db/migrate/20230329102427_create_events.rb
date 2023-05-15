@@ -4,7 +4,6 @@ class CreateEvents < ActiveRecord::Migration[6.1]
       t.string :name, null: false
       t.datetime :start_date, null: false
       t.datetime :end_date
-      t.string :status, default: 'planned', null: false
       t.string :location
       t.text :description
 

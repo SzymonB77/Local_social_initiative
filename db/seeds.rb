@@ -10,7 +10,7 @@ admin = User.create!(nickname: 'admin',
 users = []
 10.times do
   user = User.create!(nickname: Faker::Internet.username,
-                      email: Faker::Internet.email,
+                      email: Faker::Internet.unique.email,
                       password: 'password',
                       role: 'user',
                       name: Faker::Name.first_name,
@@ -54,7 +54,7 @@ end
 # Tags
 tags = []
 10.times do
-  tag = Tag.create!(name: Faker::Lorem.word)
+  tag = Tag.create!(name: Faker::Lorem.unique.word)
   tags << tag
 end
 

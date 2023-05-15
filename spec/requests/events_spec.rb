@@ -66,7 +66,6 @@ RSpec.describe EventsController, type: :controller do
         expect(response_body['name']).to eq(event.name)
         expect(response_body['start_date']).to eq(event.start_date.as_json)
         expect(response_body['end_date']).to eq(event.end_date.as_json)
-        expect(response_body['status']).to eq(event.status)
         expect(response_body['location']).to eq(event.location)
         expect(response_body['description']).to eq(event.description)
       end

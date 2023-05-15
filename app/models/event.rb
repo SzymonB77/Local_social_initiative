@@ -15,11 +15,10 @@
 #  main_photo  :string
 #
 class Event < ApplicationRecord
-  VALID_STATUSES = ['planned', 'in progress', 'finished'].freeze
+  
   # Add validations
   validates :name, presence: true
   validates :start_date, presence: true
-  validates :status, inclusion: { in: VALID_STATUSES }
   validate :start_date_cannot_be_in_the_past, on: :create
   validate :end_date_cannot_be_before_start_date, on: :create
 
@@ -37,18 +36,5 @@ class Event < ApplicationRecord
 
   def end_date_cannot_be_before_start_date
     errors.add(:end_date, "can't be before start date") if end_date.present? && end_date < start_date
-  end
-
-  def event_status
-    if end_date
-      if Time.current > end_date
-        update(status: 'finished')
-      else
-        Time.current >= start_date && Time.current <= end_date
-        update(status: 'in_progress')
-      end
-    elsif Time.current > start_date
-      update(status: 'finished')
-    end
   end
 end

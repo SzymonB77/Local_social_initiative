@@ -15,7 +15,7 @@
 #  main_photo  :string
 #
 class EventSerializer < ActiveModel::Serializer
-  attributes :id, :name, :start_date, :end_date, :status, :location, :description, :hosted_by
+  attributes :id, :name, :start_date, :end_date, :location, :description, :hosted_by
 
   has_many :attendees, serializer: SimpleAttendeeSerializer, limit: 4
   has_many :photos, serializer: PhotoSerializer, limit: 4

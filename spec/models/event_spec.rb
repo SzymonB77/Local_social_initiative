@@ -6,7 +6,6 @@ RSpec.describe Event, type: :model do
 
     it { is_expected.to validate_presence_of(:name) }
     it { is_expected.to validate_presence_of(:start_date) }
-    it { is_expected.to validate_inclusion_of(:status).in_array(Event::VALID_STATUSES) }
 
     context 'when start_date is in the past' do
       let(:event) { build(:event, start_date: 1.day.ago) }
