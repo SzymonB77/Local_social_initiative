@@ -10,12 +10,10 @@ class EventsController < ApplicationController
 
   # GET /events/:id
   def show
-    begin
-      @event = Event.includes(attendees: :user, photos: :user).find(params[:id])
-      render json: @event, serializer: EventSerializer
-    rescue ActiveRecord::RecordNotFound
-      render json: { error: "Event not found" }, status: :not_found
-    end
+    @event = Event.includes(attendees: :user, photos: :user).find(params[:id])
+    render json: @event, serializer: EventSerializer
+  rescue ActiveRecord::RecordNotFound
+    render json: { error: 'Event not found' }, status: :not_found
   end
 
   # POST /events

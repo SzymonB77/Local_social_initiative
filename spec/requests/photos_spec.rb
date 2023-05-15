@@ -66,7 +66,7 @@ RSpec.describe PhotosController, type: :controller do
     context 'when user try to create new photo' do
       let(:request_params) { { event_id: event.id, photo: photo_attributes } }
       let(:photo_attributes) { attributes_for(:photo, user_id: host.id, event_id: event.id) }
-      
+
       before do
         host_attendee
         co_host_attendee
@@ -75,8 +75,8 @@ RSpec.describe PhotosController, type: :controller do
 
       context 'when user is host' do
         before do
-           request.headers.merge! 'Authorization' => "Bearer #{host_token}" 
-           post :create, params: request_params
+          request.headers.merge! 'Authorization' => "Bearer #{host_token}"
+          post :create, params: request_params
         end
 
         it { is_expected.to respond_with 200 }
@@ -98,9 +98,9 @@ RSpec.describe PhotosController, type: :controller do
 
       context 'when user is co-host' do
         before do
-          request.headers.merge! 'Authorization' => "Bearer #{co_host_token}" 
+          request.headers.merge! 'Authorization' => "Bearer #{co_host_token}"
           post :create, params: request_params
-       end
+        end
 
         it 'returns a successful response' do
           expect(response).to have_http_status(:ok)
@@ -123,7 +123,7 @@ RSpec.describe PhotosController, type: :controller do
 
       context 'when user has role admin' do
         before do
-          request.headers.merge! 'Authorization' => "Bearer #{admin_token}" 
+          request.headers.merge! 'Authorization' => "Bearer #{admin_token}"
           post :create, params: request_params
         end
 
@@ -148,7 +148,7 @@ RSpec.describe PhotosController, type: :controller do
 
       context 'when it s just user' do
         before do
-          request.headers.merge! 'Authorization' => "Bearer #{user_token}" 
+          request.headers.merge! 'Authorization' => "Bearer #{user_token}"
           post :create, params: request_params
         end
 
@@ -175,7 +175,6 @@ RSpec.describe PhotosController, type: :controller do
   end
   describe 'DELETE #destroy' do
     context 'when user tries to delete a photo' do
-
       let(:request_params) { { event_id: event.id, id: photo.id } }
 
       before do

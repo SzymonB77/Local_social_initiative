@@ -3,7 +3,7 @@ include JwtToken
 
 RSpec.describe GroupsController, type: :controller do
   let(:group) { create(:group) }
-  let(:user_headers) { { 'Authorization': "Bearer #{jwt_encode(user.id, 'user')}" } }  
+  let(:user_headers) { { 'Authorization': "Bearer #{jwt_encode(user.id, 'user')}" } }
   let(:user) { create(:user) }
   let(:member) { create(:user) }
   let(:organizer) { create(:user) }
@@ -18,7 +18,6 @@ RSpec.describe GroupsController, type: :controller do
   let(:member_headers)  { { 'Authorization': "Bearer #{jwt_encode(member.id, 'user')}" } }
   let(:admin_headers) { { 'Authorization': "Bearer #{jwt_encode(admin.id, 'admin')}" } }
 
-  
   describe 'GET #index' do
     let(:groups) { create_list(:group, 3) }
     before do
@@ -37,7 +36,7 @@ RSpec.describe GroupsController, type: :controller do
     let(:members) { create_list(:member, 4, group: group) }
 
     before { members }
-    
+
     context 'when user is not authenticated' do
       it 'returns a success response' do
         get :show, params: { id: group.id }
@@ -78,7 +77,6 @@ RSpec.describe GroupsController, type: :controller do
   end
 
   describe 'POST #create' do
-
     context 'when user is not authenticated' do
       it 'returns unauthorized status' do
         post :create, params: { group: attributes_for(:group) }
@@ -93,8 +91,6 @@ RSpec.describe GroupsController, type: :controller do
     end
 
     context 'when user is authenticated' do
-
-
       before { request.headers.merge! user_headers }
 
       it 'creates a new group' do
@@ -123,8 +119,6 @@ RSpec.describe GroupsController, type: :controller do
     end
 
     context 'when admin is authenticated' do
-
-
       before { request.headers.merge! admin_headers }
 
       it 'creates a new group' do
@@ -158,7 +152,7 @@ RSpec.describe GroupsController, type: :controller do
     let(:valid_params) { { id: group.id, group: { name: new_group_name } } }
 
     before { organizer_member && co_organizer_member && admin_member && simple_member && group }
-    
+
     context 'when user is not authenticated' do
       before { put :update, params: valid_params }
 
@@ -173,8 +167,8 @@ RSpec.describe GroupsController, type: :controller do
 
     context 'when user is authenticated' do
       context 'and is not a member of the group' do
-        before do 
-          request.headers.merge! user_headers 
+        before do
+          request.headers.merge! user_headers
           put :update, params: valid_params
         end
 
@@ -223,7 +217,7 @@ RSpec.describe GroupsController, type: :controller do
 
             before do
               request.headers.merge! organizer_headers
-               put :update, params: { id: group.id, group: { name: invalid_name } }
+              put :update, params: { id: group.id, group: { name: invalid_name } }
             end
             it 'returns unprocessable_entity status' do
               expect(response).to have_http_status(:unprocessable_entity)
@@ -238,11 +232,9 @@ RSpec.describe GroupsController, type: :controller do
     end
 
     context 'when admin is authenticated' do
-
       before { request.headers.merge! admin_headers }
 
       context 'when admin is not a member of the group' do
- 
         it 'returns a success response' do
           put :update, params: valid_params
           expect(response).to have_http_status(:ok)
@@ -257,7 +249,6 @@ RSpec.describe GroupsController, type: :controller do
   end
 
   describe 'DELETE #destroy' do
-
     before { organizer_member && co_organizer_member && admin_member && simple_member }
 
     context 'when user is not authenticated' do

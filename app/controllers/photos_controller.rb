@@ -18,7 +18,6 @@ class PhotosController < ApplicationController
   # POST /events/:id/photos
   def create
     if can_do_action_with_photo?
-
       @photo = @event.photos.build(photo_params)
       @photo.user = @current_user
       if @photo.save

@@ -16,7 +16,7 @@ RSpec.describe EventTagsController, type: :controller do
       let(:event_tag1) { create(:event_tag, event: event, tag: tag1) }
       let(:event_tag2) { create(:event_tag, event: event, tag: tag2) }
 
-      before {event_tag1 && event_tag2}
+      before { event_tag1 && event_tag2 }
       before { get :index, params: { event_id: event.id } }
 
       it 'returns a success response' do
@@ -29,7 +29,6 @@ RSpec.describe EventTagsController, type: :controller do
     end
 
     context 'when the event does not have any photos' do
-
       before { get :index, params: { event_id: event.id } }
 
       it 'returns a success response' do
@@ -111,7 +110,6 @@ RSpec.describe EventTagsController, type: :controller do
 
     before { host_attendee && event_tag }
     context 'when user is authorized' do
-
       before { request.headers.merge! host_headers }
 
       it 'deletes the event tag' do

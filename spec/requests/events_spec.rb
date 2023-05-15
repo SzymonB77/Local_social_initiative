@@ -19,7 +19,7 @@ RSpec.describe EventsController, type: :controller do
 
   describe 'GET #index' do
     let(:events) { create_list(:event, 3) }
-    
+
     context 'when events exist' do
       before { events }
       before { get :index }
@@ -51,7 +51,7 @@ RSpec.describe EventsController, type: :controller do
     before { attendees && photos }
 
     context 'when user is authenticated' do
-      before do 
+      before do
         request.headers.merge! user_headers
         get :show, params: { id: event.id }
       end
@@ -104,7 +104,6 @@ RSpec.describe EventsController, type: :controller do
     let(:event_params) { attributes_for(:event) }
 
     context 'when user is authenticated and parameters are valid' do
-
       before { request.headers.merge! user_headers }
 
       it 'creates a new event' do
@@ -136,7 +135,6 @@ RSpec.describe EventsController, type: :controller do
     end
 
     context 'when user is authenticated and parameters are valid' do
-
       before { request.headers.merge! admin_headers }
 
       it 'creates a new event' do
@@ -251,7 +249,6 @@ RSpec.describe EventsController, type: :controller do
       end
 
       context 'as an co-host' do
-
         before { request.headers.merge!(co_host_headers) }
 
         context 'with valid params' do
@@ -285,7 +282,6 @@ RSpec.describe EventsController, type: :controller do
   end
 
   describe 'DELETE #destroy' do
-
     before { host_attendee && co_host_attendee && simple_attendee && event }
 
     context 'when user is not authenticated' do

@@ -18,7 +18,7 @@ RSpec.describe MembersController, type: :controller do
 
   describe 'GET #index' do
     let(:members) { create_list(:member, 3, group: group) }
-    context 'when the group has members' do    
+    context 'when the group has members' do
       before do
         members
         get :index, params: { group_id: group.id }
@@ -77,7 +77,6 @@ RSpec.describe MembersController, type: :controller do
   end
 
   describe 'PUT #update' do
-
     before { organizer_member && co_organizer_member && simple_member }
 
     context 'when user is authenticated' do
@@ -85,7 +84,9 @@ RSpec.describe MembersController, type: :controller do
         before { request.headers.merge! 'Authorization' => "Bearer #{organizer_token}" }
 
         context 'with valid params' do
-          before { put :update, params: { group_id: group.id, id: simple_member.id, member: { role: 'co-organizer' } }        }
+          before do
+            put :update, params: { group_id: group.id, id: simple_member.id, member: { role: 'co-organizer' } }
+          end
           it 'updates the member role' do
             expect(simple_member.reload.role).to eq('co-organizer')
           end
@@ -95,7 +96,7 @@ RSpec.describe MembersController, type: :controller do
         end
 
         context 'with invalid params' do
-          before { put :update, params: { group_id: group.id, id: simple_member.id, member: { role: nil } }        }
+          before { put :update, params: { group_id: group.id, id: simple_member.id, member: { role: nil } } }
 
           it 'does not update the member role' do
             expect(group.reload.updated_at).to eq(group.updated_at)
@@ -110,7 +111,9 @@ RSpec.describe MembersController, type: :controller do
         before { request.headers.merge! 'Authorization' => "Bearer #{co_organizer_token}" }
 
         context 'with valid params' do
-          before { put :update, params: { group_id: group.id, id: simple_member.id, member: { role: 'co-organizer' } }        }
+          before do
+            put :update, params: { group_id: group.id, id: simple_member.id, member: { role: 'co-organizer' } }
+          end
           it 'updates the member role' do
             expect(simple_member.reload.role).to eq('co-organizer')
           end
@@ -142,8 +145,8 @@ RSpec.describe MembersController, type: :controller do
       end
 
       context 'when user is the member' do
-        before do 
-          request.headers.merge! 'Authorization' => "Bearer #{user_token}" 
+        before do
+          request.headers.merge! 'Authorization' => "Bearer #{user_token}"
           put :update, params: { group_id: group.id, id: simple_member.id, member: { role: 'co-organizer' } }
         end
 
@@ -157,8 +160,8 @@ RSpec.describe MembersController, type: :controller do
     end
 
     context 'when admin is authenticated' do
-      before do 
-        request.headers.merge! 'Authorization' => "Bearer #{admin_token}" 
+      before do
+        request.headers.merge! 'Authorization' => "Bearer #{admin_token}"
         put :update, params: { group_id: group.id, id: simple_member.id, member: { role: 'co-organizer' } }
       end
 
@@ -173,7 +176,7 @@ RSpec.describe MembersController, type: :controller do
     end
 
     context 'when user is not authenticated' do
-      before { put :update, params: { group_id: group.id, id: simple_member.id, member: { role: 'co-organizer' } }    }
+      before { put :update, params: { group_id: group.id, id: simple_member.id, member: { role: 'co-organizer' } } }
       it 'does not update the member role' do
         expect(group.reload.updated_at).to eq(group.updated_at)
       end
@@ -184,7 +187,6 @@ RSpec.describe MembersController, type: :controller do
   end
 
   describe 'DELETE #destroy' do
-    
     before { organizer_member && co_organizer_member && simple_member }
 
     context 'when user is authenticated' do
