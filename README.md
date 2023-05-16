@@ -1,5 +1,5 @@
 # Local Social Initiative 
-**Local Social Initiative** is a REST API application based on **Ruby on Rails** with a **PostgreSQL** database. The app is designed to facilitate the organization and coordination of local events within your city. Inspired by platforms like Meetup.com, the app simplifies event management, enabling users to create, join, and engage with local community events easily. The app uses RSpec tests to make sure everything works correctly.
+**Local Social Initiative** is a REST API application based on **Ruby on Rails** with a **PostgreSQL** database. The app is designed to facilitate the organization and coordination of local events within your city. Inspired by platforms like Meetup.com, the app simplifies event management, enabling users to create, join, and engage with local community events easily. The app uses **RSpec** tests to make sure everything works correctly.
 
 ### Features of the application:
 
