@@ -6,7 +6,7 @@
 - **User Management:** Sign up, log in, and customize profiles.
 - **Event Management:** Create and attend events with detailed information and registration.
 - **Group Management:** Create and join groups with name, description, and member count.
-- **Attendee Management:** Join events with different roles (organizer, co-organizer, attendee).
+- **Attendee Management:** Join events with different roles (host, co-hostr, attendee).
 - **Member Management:** Join groups and view role and events within each group.
 - **Photo Management:** Hosts and co-hosts upload event photos associated with users and events.
 - **Tagging:** Assign tags to events.
