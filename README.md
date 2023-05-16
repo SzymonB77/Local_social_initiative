@@ -14,10 +14,11 @@
 
 ## Entity Relationship Diagram (ERD)
 In the link below you will find the ER diagram of the database designed for this application. 
+
 https://dbdiagram.io/d/6406f914296d97641d85fefd
 
-## Examples of API responses
-Below are examples of responses from endpoints.
+![Screenshot_3](https://github.com/SzymonB77/Local_social_initiative/assets/107799653/f25e860f-c163-4c5f-a89a-d5b753176d5a)
+
 
 ## Installing
 
