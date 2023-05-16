@@ -39,7 +39,7 @@ git clone https://github.com/SzymonB77/Local_social_initiative.git
 
 Enter project folder:
 ``` bash
-cd Charity_Fundraising_App
+cd Local_social_initiative
 ```
 
 Next, configure your local database in config/database.yml file. Add your database username and password (unless you don't have any).
