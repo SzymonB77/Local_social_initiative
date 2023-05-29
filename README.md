@@ -17,7 +17,8 @@ In the link below you will find the ER diagram of the database designed for this
 
 https://dbdiagram.io/d/6406f914296d97641d85fefd
 
-![Screenshot_3](https://github.com/SzymonB77/Local_social_initiative/assets/107799653/f25e860f-c163-4c5f-a89a-d5b753176d5a)
+![Screenshot_3](https://github.com/SzymonB77/Local_social_initiative/assets/107799653/d8767dd5-5cf1-4b8c-ad99-0b0fc4306a2b)
+
 
 
 ## Installing
